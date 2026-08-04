@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talkin' Baseball — Geoguessr Lineup CONTROL</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --navy:#0d1f2d;
+    --navy2:#132c40;
+    --panel:#11273a;
+    --line:#22415c;
+    --gold:#fbcc7a;
+    --gold2:#e0a94f;
+    --green:#3fbf6f;
+    --red:#e2453c;
+    --ink:#eef4fa;
+    --dim:#8fabc4;
+  }
+  body{
+    font-family:'DM Sans', -apple-system, Arial, sans-serif;
+    background:var(--navy); color:var(--ink);
+    padding:18px 18px 90px; max-width:1180px; margin:0 auto;
+    font-size:15px;
+  }
+  .bebas{ font-family:'Bebas Neue', Impact, sans-serif; letter-spacing:1px; }
+  .mono{ font-family:'DM Mono', monospace; }
+
+  h1{ font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:1px; line-height:1; }
+  h1 span{ color:var(--gold); }
+  .sub{ color:var(--dim); font-size:13px; margin:2px 0 16px; }
+
+  h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:3px; color:var(--gold);
+    margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:10px;
+  }
+  h2 .n{
+    background:var(--gold); color:var(--navy); width:22px; height:22px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0; padding-top:2px;
+  }
+  h2 .note{ font-weight:400; letter-spacing:0; text-transform:none; color:var(--dim); font-size:12px; }
+
+  .row{ display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .hint{ font-size:12px; color:var(--dim); margin-top:6px; line-height:1.5; }
+
+  input[type=text], input[type=number], select{
+    padding:9px 12px; border-radius:7px; border:1px solid var(--line);
+    background:#0b1a28; color:#fff; font-size:14px; font-family:inherit;
+  }
+  input[type=text]:focus, select:focus{ outline:2px solid var(--gold2); border-color:var(--gold2); }
+  .grow{ flex:1; min-width:140px; }
+
+  button{
+    padding:9px 14px; border-radius:7px; border:1px solid transparent; cursor:pointer;
+    font-size:13px; font-weight:700; background:#1d3b55; color:#fff; font-family:inherit;
+    transition:background 120ms ease, transform 60ms ease;
+  }
+  button:hover{ background:#27506f; }
+  button:active{ transform:translateY(1px); }
+  button.primary{ background:var(--gold); color:var(--navy); }
+  button.primary:hover{ background:#ffd991; }
+  button.green{ background:var(--green); color:#04220f; }
+  button.green:hover{ background:#54d484; }
+  button.red{ background:var(--red); color:#fff; }
+  button.red:hover{ background:#f05a51; }
+  button.ghost{ background:transparent; border:1px solid var(--line); color:var(--dim); }
+  button.ghost:hover{ background:#16293b; color:#fff; }
+  button:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
+  button.big{ padding:15px 22px; font-size:16px; letter-spacing:.5px; }
+  button.live{ box-shadow:0 0 0 2px var(--green) inset; }
+
+  #connStatus{ font-size:12px; padding:5px 12px; border-radius:20px; background:#2b3947; color:#b9c8d6; }
+  #connStatus.ok{ background:#176b3b; color:#fff; }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:820px){ .grid2{ grid-template-columns:1fr; } }
+
+  /* ---- preview ---- */
+  .previewBox{
+    width:100%; max-width:560px; aspect-ratio:16/9; overflow:hidden; position:relative;
+    background:#081420; border:1px solid var(--line); border-radius:8px;
+    background-image:linear-gradient(45deg,#0e1c28 25%,transparent 25%,transparent 75%,#0e1c28 75%),
+                     linear-gradient(45deg,#0e1c28 25%,transparent 25%,transparent 75%,#0e1c28 75%);
+    background-size:24px 24px; background-position:0 0,12px 12px;
+  }
+  .previewBox iframe{
+    width:1920px; height:1080px; border:0; position:absolute; top:0; left:0;
+    transform:scale(0.2917); transform-origin:top left;
+  }
+  .previewPlaceholder{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--dim); font-size:12px; text-align:center; padding:16px;
+  }
+
+  /* ---- timer ---- */
+  #clockBig{
+    font-family:'Bebas Neue',sans-serif; font-size:78px; line-height:.9;
+    font-variant-numeric:tabular-nums; color:#fff; min-width:180px;
+  }
+  #clockBig.warn{ color:var(--gold); }
+  #clockBig.crit{ color:#ff8b82; }
+  #clockState{ font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); }
+
+  /* ---- state grid ---- */
+  #stateGrid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(58px, 1fr)); gap:5px;
+    margin-top:8px;
+  }
+  .stBtn{
+    padding:7px 2px 5px; font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:1px;
+    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:6px;
+    cursor:pointer; text-align:center; line-height:1;
+  }
+  .stBtn:hover{ background:#1d3b55; color:#fff; }
+  .stBtn .c{ display:block; font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); letter-spacing:0; }
+  .stBtn.on{ background:var(--gold); border-color:#fff; color:var(--navy); }
+  .stBtn.on .c{ color:rgba(13,31,45,.65); }
+  .stBtn.used{ border-color:var(--gold2); }
+  .stBtn.used::after{ content:'•'; color:var(--gold); }
+
+  #statePicked{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:#0b1a28; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-top:10px;
+  }
+  #statePickedName{ font-family:'Bebas Neue',sans-serif; font-size:32px; line-height:1; }
+  #statePicked a{ color:var(--gold); font-size:13px; }
+
+  /* ---- results list ---- */
+  .resultsBox{
+    max-height:260px; overflow-y:auto; background:#0b1a28;
+    border:1px solid var(--line); border-radius:8px; margin-top:8px;
+  }
+  .resultItem{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 12px; font-size:14px; cursor:pointer; border-bottom:1px solid #16293b;
+  }
+  .resultItem:hover{ background:#1b334a; }
+  .resultItem:last-child{ border-bottom:none; }
+  .resultItem .rank{ font-family:'DM Mono',monospace; font-size:11px; color:var(--dim); width:34px; }
+  .resultItem .nm{ flex:1; }
+  .resultItem .pos{ font-family:'Bebas Neue',sans-serif; font-size:17px; color:var(--gold); width:40px; text-align:center; }
+  .resultItem .war{ font-family:'Bebas Neue',sans-serif; font-size:19px; width:52px; text-align:right; }
+  .resultItem .hof{ color:var(--gold); font-size:12px; }
+
+  /* ---- scouting card ---- */
+  #scout{ display:none; margin-top:12px; }
+  #scout.on{ display:block; }
+  #scoutTop{ display:flex; gap:14px; align-items:flex-start; }
+  #scoutImg{
+    width:104px; height:120px; object-fit:cover; object-position:top center;
+    border-radius:8px; background:#0b1a28; border:1px solid var(--line); flex:0 0 auto;
+  }
+  #scoutName{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:1; }
+  #scoutLine{ color:var(--gold); font-size:14px; margin-top:2px; }
+  #scoutBio{ font-size:14px; line-height:1.55; margin-top:8px; color:#dfe9f2; }
+  #scoutWar{
+    background:var(--gold); color:var(--navy); border-radius:8px; padding:5px 14px 7px;
+    text-align:center; flex:0 0 auto;
+  }
+  #scoutWar .num{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:.9; display:block; }
+  #scoutWar .lbl{ font-size:9px; font-weight:700; letter-spacing:2px; }
+  #scoutStats{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  #scoutStats .s{
+    background:#0b1a28; border:1px solid var(--line); border-radius:6px;
+    padding:4px 10px 5px; text-align:center; min-width:62px;
+  }
+  #scoutStats .s .v{ font-family:'Bebas Neue',sans-serif; font-size:20px; display:block; line-height:1; }
+  #scoutStats .s .k{ font-size:9px; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; }
+  #scoutAcc{ display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  #scoutAcc .a{
+    background:rgba(251,204,122,.14); border:1px solid rgba(251,204,122,.4);
+    color:#ffe6bb; font-size:12px; border-radius:14px; padding:2px 10px 3px;
+  }
+  #scoutAcc .a.hof{ background:var(--gold); color:var(--navy); font-weight:700; }
+  #scoutForced{
+    display:none; margin-top:10px; background:rgba(226,69,60,.16); border-left:4px solid var(--red);
+    padding:7px 12px; border-radius:0 6px 6px 0; font-size:13px; color:#ffb3ad; font-weight:700;
+  }
+  #scout.forced #scoutForced{ display:block; }
+
+  /* ---- slots ---- */
+  #slotBtns{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .slotBtn{
+    font-family:'Bebas Neue',sans-serif; font-size:21px; padding:8px 15px 6px;
+    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:7px; cursor:pointer;
+    line-height:1; position:relative;
+  }
+  .slotBtn:hover{ background:#1d3b55; color:#fff; }
+  .slotBtn.elig{ border-color:var(--gold2); color:#fff; }
+  .slotBtn.on{ background:var(--gold); border-color:#fff; color:var(--navy); }
+  .slotBtn.taken{ opacity:.3; cursor:not-allowed; text-decoration:line-through; }
+
+  /* ---- lineup table ---- */
+  table.lineup{ width:100%; border-collapse:collapse; font-size:14px; }
+  table.lineup th{
+    text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--gold); padding:6px 8px; border-bottom:1px solid var(--line);
+  }
+  table.lineup td{ padding:7px 8px; border-bottom:1px solid #16293b; }
+  table.lineup tr:last-child td{ border-bottom:none; }
+  table.lineup .pos{ font-family:'Bebas Neue',sans-serif; font-size:21px; color:var(--gold); width:44px; }
+  table.lineup .war{ font-family:'Bebas Neue',sans-serif; font-size:20px; text-align:right; width:60px; }
+  table.lineup .empty{ color:#5b7691; font-style:italic; }
+  table.lineup .forced{ color:#ff9a92; font-size:11px; font-weight:700; }
+  table.lineup td.st{ font-family:'DM Mono',monospace; font-size:12px; color:var(--dim); width:130px; }
+  #totalBar{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--gold); color:var(--navy); border-radius:8px;
+    padding:8px 16px; margin-top:10px;
+  }
+  #totalBar .l{ font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+  #totalBar .v{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:.9; }
+
+  /* ---- onair ---- */
+  #onair{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:#081521; border-top:1px solid var(--line);
+    padding:8px 16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    box-shadow:0 -8px 24px rgba(0,0,0,.5);
+  }
+  #onair .lbl{ font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-right:4px; }
+  .chip{
+    font-size:11px; padding:4px 10px; border-radius:14px; letter-spacing:1px;
+    background:#1a2a38; color:#6d8299; text-transform:uppercase; font-weight:700;
+  }
+  .chip.on{ background:var(--green); color:#04220f; }
+  #onair button{ padding:5px 11px; font-size:11px; }
+
+  .cmpTable{ width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+  .cmpTable th{ text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:5px 6px; border-bottom:1px solid var(--line); }
+  .cmpTable td{ padding:5px 6px; border-bottom:1px solid #16293b; }
+  .cmpTable .w{ font-family:'Bebas Neue',sans-serif; font-size:17px; text-align:right; }
+  .cmpTable tr.better td{ background:rgba(226,69,60,.09); }
+  .cmpTable tr.same td{ background:rgba(63,191,111,.09); }
+  .warn{ background:rgba(226,69,60,.14); border-left:4px solid var(--red); padding:9px 13px; border-radius:0 6px 6px 0; font-size:13px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<h1>Talkin' Baseball — <span>Geoguessr Lineup</span> Control</h1>
+<div class="sub">Three minutes on the map, then take a player born in that state. Build a traditional NL lineup, add up the WAR.</div>
+
+<!-- ============ 1 CONNECTION ============ -->
+<h2><span class="n">1</span> Connection</h2>
+<div class="row">
+  <input type="text" id="topicInput" class="grow" placeholder="ntfy topic (e.g. jomboy-geo-lineup-7k3x9)">
+  <button class="primary" id="connectBtn">Connect</button>
+  <span id="connStatus">not connected</span>
+</div>
+<div class="row">
+  <button class="ghost" id="copyDisplayBtn" disabled>Copy Display URL</button>
+  <button class="ghost" id="refreshPreviewBtn">Refresh Preview</button>
+  <button class="ghost" id="resyncBtn">Force Resync</button>
+</div>
+<div class="previewBox">
+  <iframe id="previewFrame" title="Display preview"></iframe>
+  <div class="previewPlaceholder" id="previewPlaceholder">Connect to a topic to load the preview</div>
+</div>
+<div class="hint">This is <b>display.html</b> loaded exactly the way OBS loads it — same topic, same live sync. If it's not showing here, it won't show in OBS either. Both pages have to be served over http(s) (GitHub Pages), not opened as a local file.</div>
+
+<!-- ============ 2 GAME ============ -->
+<h2><span class="n">2</span> Game</h2>
+<div class="grid2">
+  <div class="panel">
+    <div class="row">
+      <input type="text" id="teamName" class="grow" placeholder="Team name (e.g. Team Trevor)">
+      <button id="saveTeamBtn">Set</button>
+    </div>
+    <div class="hint">Shows on the lineup board and the final card.</div>
+    <div class="row" style="margin-top:12px;">
+      <span class="hint" style="margin:0;">Round timer</span>
+      <input type="number" id="durMin" value="3" min="0" max="30" style="width:62px;"> min
+      <input type="number" id="durSec" value="0" min="0" max="59" style="width:62px;"> sec
+      <button id="setDurBtn">Set</button>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button class="red" id="resetGameBtn">Reset Whole Game</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="row" style="align-items:flex-end; gap:16px;">
+      <div>
+        <div id="clockState">stopped</div>
+        <div id="clockBig" class="bebas">3:00</div>
+      </div>
+      <div style="flex:1;">
+        <div class="row">
+          <button class="green big" id="startBtn">▶ START</button>
+          <button id="pauseBtn">⏸ Pause</button>
+        </div>
+        <div class="row">
+          <button id="resetTimerBtn">↺ Reset</button>
+          <button id="plus30Btn">+30s</button>
+          <button class="ghost" id="showTimerBtn">Show on Display</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">START also pops the timer up on the display. Space = start/pause, R = reset (when you're not typing in a field).</div>
+  </div>
+</div>
+
+<!-- ============ 3 ROUND ============ -->
+<h2><span class="n">3</span> Round <span id="roundNum" style="color:#fff">1</span> of 9 <span class="note" id="roundNote"></span></h2>
+
+<div class="panel">
+  <div class="row">
+    <input type="text" id="stateSearch" class="grow" placeholder="Type a state… (or click below)">
+    <span class="hint" style="margin:0;">Numbers are how many players we carry for that state</span>
+  </div>
+  <div id="stateGrid"></div>
+  <div id="statePicked" style="display:none;">
+    <div id="statePickedName" class="bebas">—</div>
+    <div id="statePickedCount" class="hint" style="margin:0;"></div>
+    <a id="brefLink" href="#" target="_blank" rel="noopener">Baseball Reference birthplace page ↗</a>
+  </div>
+
+  <div class="row" style="margin-top:14px;">
+    <button class="green big" id="gotItBtn" disabled>✅ GOT IT — they pick</button>
+    <button class="red big" id="missedBtn" disabled>❌ MISSED IT — random draw</button>
+  </div>
+  <div class="hint">Either one puts the state + verdict on the display right away.</div>
+
+  <!-- they pick -->
+  <div id="pickBlock" style="display:none; margin-top:14px;">
+    <div class="row">
+      <input type="text" id="playerSearch" class="grow" placeholder="Search a player born in this state…">
+      <label class="hint" style="margin:0;"><input type="checkbox" id="fpOnly"> only positions still open</label>
+    </div>
+    <div class="resultsBox" id="playerResults"></div>
+  </div>
+
+  <!-- random draw -->
+  <div id="rollBlock" style="display:none; margin-top:14px;">
+    <div class="row">
+      <span class="hint" style="margin:0;">Draw from</span>
+      <select id="rollPool">
+        <option value="all">Anyone we carry for the state</option>
+        <option value="top25">Top 25 by WAR</option>
+        <option value="deep">Deep cuts (outside the top 25)</option>
+        <option value="openpos">Anyone who fits an open spot</option>
+      </select>
+      <button class="red big" id="rollBtn">🎲 ROLL RANDOM PLAYER</button>
+    </div>
+    <div class="hint">The display runs the slot-machine spin and lands on the guy. Roll again if you need a re-do before you lock it in.</div>
+  </div>
+
+  <!-- scouting card -->
+  <div id="scout" class="panel" style="background:#0b1a28;">
+    <div id="scoutTop">
+      <img id="scoutImg" src="" alt="">
+      <div style="flex:1; min-width:0;">
+        <div id="scoutName" class="bebas">—</div>
+        <div id="scoutLine"></div>
+        <div id="scoutBio"></div>
+      </div>
+      <div id="scoutWar"><span class="num bebas">0.0</span><span class="lbl">WAR</span></div>
+    </div>
+    <div id="scoutStats"></div>
+    <div id="scoutAcc"></div>
+    <div id="scoutForced">🎲 Forced pick — they missed the state</div>
+
+    <div class="row" style="margin-top:12px;">
+      <span class="hint" style="margin:0;">Name on screen</span>
+      <input type="text" id="dispName" class="grow" placeholder="leave alone unless it reads wrong">
+      <button class="ghost" id="dispNameReset">↺</button>
+    </div>
+    <div class="hint" style="margin-top:0;">MLB's records carry legal suffixes — “Nolan Ryan Jr.”, for one. Fix it here and the overlay follows.</div>
+
+    <div class="row" style="margin-top:12px;">
+      <span class="hint" style="margin:0;">Put him at</span>
+    </div>
+    <div id="slotBtns"></div>
+    <div class="warn" id="slotWarn" style="display:none;"></div>
+    <div class="row" style="margin-top:12px;">
+      <button class="primary big" id="revealBtn">📺 Reveal Card on Display</button>
+      <button class="green big" id="lockBtn" disabled>🔒 LOCK IN TO LINEUP</button>
+      <button class="ghost" id="clearPickBtn">Clear pick</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 4 LINEUP ============ -->
+<h2><span class="n">4</span> The Lineup</h2>
+<div class="panel">
+  <table class="lineup">
+    <thead><tr><th>Pos</th><th>Player</th><th>From</th><th style="text-align:right;">WAR</th><th></th></tr></thead>
+    <tbody id="lineupBody"></tbody>
+  </table>
+  <div id="totalBar"><span class="l">Total career WAR</span><span class="v bebas" id="totalWar">0.0</span></div>
+  <div class="row" style="margin-top:10px;">
+    <button class="ghost" id="showLineupBtn">Show Board on Display</button>
+    <button class="ghost" id="showStripBtn">Show States Strip</button>
+  </div>
+</div>
+
+<!-- ============ 5 FINAL ============ -->
+<h2><span class="n">5</span> Final</h2>
+<div class="panel">
+  <div class="row">
+    <button class="primary big" id="showFinalBtn">📺 Reveal Total WAR</button>
+    <button class="primary big" id="buildBestBtn">🏆 Build Best Possible Team</button>
+    <button class="ghost" id="hideFinalBtn">Hide Final</button>
+  </div>
+  <div class="row">
+    <label class="hint" style="margin:0;">
+      <input type="checkbox" id="oneEach" checked> one player per state (same rules they played by)
+    </label>
+  </div>
+  <div class="hint">Best team is picked from the states they actually visited, using each player's real position eligibility. Untick the box to let one loaded state fill several spots.</div>
+  <div id="bestOut"></div>
+</div>
+
+<!-- ============ ON AIR ============ -->
+<div class="warn" id="dupWarn" style="display:none; position:fixed; left:12px; right:12px; bottom:56px; z-index:60;"></div>
+
+<div id="onair">
+  <span class="lbl">On air</span>
+  <span class="chip" id="chipTimer">Timer</span>
+  <span class="chip" id="chipBanner">State</span>
+  <span class="chip" id="chipRoll">Roll</span>
+  <span class="chip" id="chipCard">Card</span>
+  <span class="chip" id="chipLineup">Board</span>
+  <span class="chip" id="chipStrip">States</span>
+  <span class="chip" id="chipFinal">Final</span>
+  <button class="red" id="hideAllBtn">Hide Everything</button>
+  <span class="hint" style="margin:0;" id="saveHint"></span>
+</div>
+
+<script src="players.js"></script>
+<script>
+/* ============================================================
+   Talkin' Baseball — Geoguessr Lineup CONTROL
+   Publishes game state to an ntfy.sh topic; display.html reads it.
+   Only ids travel over the wire — display.html has players.js too.
+   ============================================================ */
+
+const SLOTS = ['C','1B','2B','3B','SS','LF','CF','RF','P'];
+const POS_NAMES = {C:'catcher','1B':'first baseman','2B':'second baseman','3B':'third baseman',
+  SS:'shortstop',LF:'left fielder',CF:'center fielder',RF:'right fielder',P:'pitcher',DH:'designated hitter'};
+const DATA = window.GEO_DATA || {states:{}, stateNames:{}};
+const STATE_NAMES = DATA.stateNames || {};
+
+const BY_ID = {};
+for(const st in DATA.states){
+  for(const p of DATA.states[st]){ p._st = st; BY_ID[p.id] = p; }
+}
+const STATE_LIST = Object.keys(DATA.states).sort((a,b) =>
+  (STATE_NAMES[a]||a).localeCompare(STATE_NAMES[b]||b));
+
+/* A typo'd or removed element id used to throw here and kill every listener
+   registered after it — a dead control page in the middle of a show. Missing
+   elements now degrade to a no-op and get reported instead. */
+const MISSING = [];
+const STUB = new Proxy({}, {
+  get(_, k){
+    if(k === 'classList') return { toggle(){}, add(){}, remove(){}, contains(){ return false; } };
+    if(k === 'style' || k === 'dataset') return {};
+    if(k === 'matches') return () => false;
+    if(k === 'querySelectorAll') return () => [];
+    if(k === 'value' || k === 'textContent' || k === 'innerHTML') return '';
+    if(k === 'checked' || k === 'disabled') return false;
+    return () => STUB;
+  },
+  set(){ return true; }
+});
+function $(id){
+  const el = document.getElementById(id);
+  if(el) return el;
+  if(!MISSING.includes(id)){ MISSING.push(id); console.warn('control: no element #' + id); }
+  return STUB;
+}
+const war = x => (Math.round((x||0)*10)/10).toFixed(1);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sName = ab => STATE_NAMES[ab] || ab || '';
+const headshot = id => `https://img.mlbstatic.com/mlb-photos/image/upload/w_240,q_auto:good/v1/people/${id}/headshot/67/current`;
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const FRESH = () => ({
+  v: 1,
+  team: '',
+  round: 1,
+  timer: { running:false, remaining:180, dur:180, nonce:0 },
+  show: { timer:false, banner:false, roll:false, card:false, lineup:false, strip:false, final:false },
+  banner: { st:'', ok:null },
+  roll: { nonce:0, st:'', finalId:null, pool:[], idx:0, of:0 },
+  card: { id:null, st:'', slot:'', forced:false },
+  lineup: {},
+  statesUsed: [],
+  results: { best:null, oneEach:true }
+});
+let state = FRESH();
+
+/* local-only working state (never published) */
+let ui = { st:'', verdict:null, pickId:null, forced:false, slot:'', nm:'' };
+
+const TAB_ID = Math.random().toString(36).slice(2);
+let TOPIC = localStorage.getItem('geo_topic') || '';
+$('topicInput').value = TOPIC;
+
+function persist(){
+  try{
+    localStorage.setItem('geo_writer', TAB_ID);
+    localStorage.setItem('geo_state', JSON.stringify(state));
+    localStorage.setItem('geo_ui', JSON.stringify(ui));
+  }catch(e){}
+}
+function restore(){
+  try{
+    const s = JSON.parse(localStorage.getItem('geo_state') || 'null');
+    if(s && s.v === 1) state = Object.assign(FRESH(), s);
+    const u = JSON.parse(localStorage.getItem('geo_ui') || 'null');
+    if(u) ui = Object.assign(ui, u);
+  }catch(e){}
+}
+
+/* ntfy's free tier rate-limits by IP, and a live show can't afford to hit that
+   mid-round. So: (a) never publish unless something the display is actually
+   drawing would change, (b) coalesce bursts, (c) let the display run its own
+   clock off an absolute deadline instead of resyncing it every few seconds. */
+function visibleSig(){
+  const sh = state.show;
+  return JSON.stringify([
+    sh, state.team, state.round,
+    state.timer.running, state.timer.nonce, state.timer.dur,
+    sh.banner ? state.banner : 0,
+    sh.card ? state.card : 0,
+    sh.roll ? state.roll.nonce : 0,
+    state.lineup, state.statesUsed,
+    sh.final ? state.results : 0
+  ]);
+}
+let lastSig = null, sendTimer = null, sent = 0;
+function send(){
+  if(!TOPIC) return;
+  state.timer.endsAt = state.timer.running
+    ? Date.now() + Math.round(liveRemaining()*1000) : 0;
+  state.timer.remaining = liveRemaining();
+  const body = JSON.stringify(state);
+  fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}`, {method:'POST', body})
+    .then(res => {
+      if(res.status === 429){
+        $('saveHint').innerHTML = '<b style="color:#ff8b82">ntfy rate limit hit — display is frozen. Wait a minute or switch topic.</b>';
+      } else if(!res.ok){
+        $('saveHint').innerHTML = `<b style="color:#ff8b82">send failed (${res.status})</b>`;
+      } else {
+        sent++;
+        $('saveHint').textContent = `sent ${sent} · ${new Date().toLocaleTimeString()}`;
+      }
+    })
+    .catch(() => { $('saveHint').innerHTML = '<b style="color:#ff8b82">send failed — check the connection</b>'; });
+}
+function publish(force){
+  persist();
+  renderAll();
+  if(!TOPIC) return;
+  const sig = visibleSig();
+  if(!force && sig === lastSig) return;      // nothing on screen would change
+  lastSig = sig;
+  clearTimeout(sendTimer);
+  sendTimer = setTimeout(send, 140);          // coalesce a burst of clicks
+}
+
+/* ============================================================
+   CONNECTION
+   ============================================================ */
+function loadPreview(){
+  if(!TOPIC){ $('previewFrame').src=''; $('previewPlaceholder').style.display='flex'; return; }
+  $('previewPlaceholder').style.display = 'none';
+  $('previewFrame').src = `display.html?topic=${encodeURIComponent(TOPIC)}&_=${Math.floor(Math.random()*1e9)}`;
+}
+function connect(){
+  TOPIC = $('topicInput').value.trim();
+  if(!TOPIC){ alert('Enter a topic name first.'); return; }
+  localStorage.setItem('geo_topic', TOPIC);
+  $('connStatus').textContent = 'connected';
+  $('connStatus').classList.add('ok');
+  $('copyDisplayBtn').disabled = false;
+  publish(true);
+  loadPreview();
+}
+$('connectBtn').addEventListener('click', connect);
+$('refreshPreviewBtn').addEventListener('click', loadPreview);
+$('resyncBtn').addEventListener('click', () => publish(true));
+$('copyDisplayBtn').addEventListener('click', () => {
+  const url = `${location.origin}${location.pathname.replace('control.html','display.html')}?topic=${encodeURIComponent(TOPIC)}`;
+  navigator.clipboard.writeText(url).then(() => {
+    $('copyDisplayBtn').textContent = 'Copied!';
+    setTimeout(() => { $('copyDisplayBtn').textContent = 'Copy Display URL'; }, 1500);
+  }).catch(() => prompt('Copy this URL:', url));
+});
+
+/* ============================================================
+   TIMER — tick locally, resync the display every few seconds
+   ============================================================ */
+let tickBase = 0;
+function liveRemaining(){
+  if(!state.timer.running) return state.timer.remaining;
+  return Math.max(0, state.timer.remaining - (performance.now() - tickBase)/1000);
+}
+function paintClock(){
+  const r = liveRemaining();
+  const secs = Math.ceil(r - 0.001);
+  $('clockBig').textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+  $('clockBig').className = 'bebas ' + (r<=15 ? 'crit' : (r<=60 ? 'warn' : ''));
+  $('clockState').textContent = state.timer.running ? (r>0?'running':'time!') : (r<=0?'time!':'stopped');
+  requestAnimationFrame(paintClock);
+}
+requestAnimationFrame(paintClock);
+
+function pushTimer(extra){
+  state.timer.remaining = liveRemaining();
+  tickBase = performance.now();
+  if(extra) Object.assign(state.timer, extra);
+  state.timer.nonce++;
+  publish(true);
+}
+$('startBtn').addEventListener('click', () => {
+  if(liveRemaining() <= 0) state.timer.remaining = state.timer.dur;
+  tickBase = performance.now();
+  state.timer.running = true;
+  state.show.timer = true;
+  pushTimer();
+});
+$('pauseBtn').addEventListener('click', () => {
+  state.timer.remaining = liveRemaining();
+  state.timer.running = false;
+  pushTimer();
+});
+$('resetTimerBtn').addEventListener('click', () => {
+  state.timer.running = false;
+  state.timer.remaining = state.timer.dur;
+  tickBase = performance.now();
+  pushTimer();
+});
+$('plus30Btn').addEventListener('click', () => {
+  state.timer.remaining = liveRemaining() + 30;
+  tickBase = performance.now();
+  pushTimer();
+});
+$('showTimerBtn').addEventListener('click', () => { state.show.timer = !state.show.timer; publish(); });
+$('setDurBtn').addEventListener('click', () => {
+  const d = Math.max(5, (+$('durMin').value||0)*60 + (+$('durSec').value||0));
+  state.timer.dur = d;
+  state.timer.remaining = d;
+  state.timer.running = false;
+  tickBase = performance.now();
+  pushTimer();
+});
+
+/* No periodic resync — the display counts down on its own from the value we
+   sent, and every message carries an absolute endsAt so a reloaded OBS source
+   still lands on the right time. Keep our own copy current for persistence. */
+setInterval(() => {
+  if(state.timer.running){
+    state.timer.remaining = liveRemaining();
+    tickBase = performance.now();
+    if(state.timer.remaining <= 0){ state.timer.running = false; publish(); }
+    persist();
+  }
+}, 1000);
+
+document.addEventListener('keydown', e => {
+  const t = e.target.tagName;
+  if(t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
+  if(e.code === 'Space'){ e.preventDefault(); (state.timer.running ? $('pauseBtn') : $('startBtn')).click(); }
+  if(e.key === 'r' || e.key === 'R'){ $('resetTimerBtn').click(); }
+});
+
+/* ============================================================
+   TEAM / RESET
+   ============================================================ */
+$('saveTeamBtn').addEventListener('click', () => { state.team = $('teamName').value.trim(); publish(); });
+$('teamName').addEventListener('keydown', e => { if(e.key==='Enter') $('saveTeamBtn').click(); });
+$('resetGameBtn').addEventListener('click', () => {
+  if(!confirm('Clear the lineup, the states used and the round counter? (Team name and topic stay.)')) return;
+  const team = state.team, dur = state.timer.dur;
+  state = FRESH();
+  state.team = team;
+  state.timer.dur = dur;
+  state.timer.remaining = dur;
+  ui = { st:'', verdict:null, pickId:null, forced:false, slot:'', nm:'' };
+  publish();
+});
+
+/* ============================================================
+   STATE PICKER
+   ============================================================ */
+function buildStateGrid(){
+  $('stateGrid').innerHTML = STATE_LIST.map(ab =>
+    `<div class="stBtn" data-st="${ab}" title="${esc(sName(ab))}">${ab}<span class="c">${(DATA.states[ab]||[]).length}</span></div>`
+  ).join('');
+  $('stateGrid').querySelectorAll('.stBtn').forEach(el =>
+    el.addEventListener('click', () => pickState(el.dataset.st)));
+}
+function pickState(ab){
+  ui.st = ab; ui.verdict = null; ui.pickId = null; ui.forced = false; ui.slot = '';
+  $('gotItBtn').disabled = false;
+  $('missedBtn').disabled = false;
+  $('pickBlock').style.display = 'none';
+  $('rollBlock').style.display = 'none';
+  $('playerSearch').value = '';
+  persist(); renderAll();
+}
+$('stateSearch').addEventListener('input', () => {
+  const q = $('stateSearch').value.trim().toLowerCase();
+  if(!q) return;
+  const hit = STATE_LIST.find(ab => sName(ab).toLowerCase().startsWith(q) || ab.toLowerCase() === q);
+  if(hit) pickState(hit);
+});
+$('stateSearch').addEventListener('keydown', e => { if(e.key==='Enter') $('stateSearch').value=''; });
+
+/* ============================================================
+   VERDICT
+   ============================================================ */
+$('gotItBtn').addEventListener('click', () => {
+  ui.verdict = true; ui.pickId = null; ui.forced = false; ui.slot = '';
+  state.banner = { st: ui.st, ok: true };
+  state.show.banner = true;
+  state.show.roll = false;
+  state.show.card = false;
+  $('pickBlock').style.display = 'block';
+  $('rollBlock').style.display = 'none';
+  renderPlayerList();
+  publish();
+  $('playerSearch').focus();
+});
+$('missedBtn').addEventListener('click', () => {
+  ui.verdict = false; ui.pickId = null; ui.forced = true; ui.slot = '';
+  state.banner = { st: ui.st, ok: false };
+  state.show.banner = true;
+  state.show.card = false;
+  $('pickBlock').style.display = 'none';
+  $('rollBlock').style.display = 'block';
+  publish();
+});
+
+/* ============================================================
+   PLAYER PICK
+   ============================================================ */
+function openSlots(){ return SLOTS.filter(s => !state.lineup[s]); }
+function poolFor(st){ return DATA.states[st] || []; }
+
+function renderPlayerList(){
+  const st = ui.st;
+  if(!st) return;
+  const q = $('playerSearch').value.trim().toLowerCase();
+  const openOnly = $('fpOnly').checked;
+  const open = new Set(openSlots());
+  let list = poolFor(st);
+  if(q) list = list.filter(p => p.n.toLowerCase().includes(q));
+  if(openOnly) list = list.filter(p => p.e.some(e => open.has(e)));
+  const full = poolFor(st);
+  $('playerResults').innerHTML = list.slice(0,150).map(p => {
+    const rank = full.indexOf(p) + 1;
+    return `<div class="resultItem" data-id="${p.id}">
+      <span class="rank">#${rank}</span>
+      <span class="pos">${p.e.join('/')}</span>
+      <span class="nm">${esc(p.n)} ${p.hof?'<span class="hof">★</span>':''}
+        <span class="hint" style="margin:0;">${esc(p.y||'')}</span></span>
+      <span class="war">${war(p.w)}</span>
+    </div>`;
+  }).join('') || `<div class="resultItem"><span class="nm hint">no matches</span></div>`;
+  $('playerResults').querySelectorAll('.resultItem[data-id]').forEach(el =>
+    el.addEventListener('click', () => selectPlayer(+el.dataset.id, false)));
+}
+$('playerSearch').addEventListener('input', renderPlayerList);
+$('fpOnly').addEventListener('change', renderPlayerList);
+
+function selectPlayer(id, forced){
+  ui.pickId = id;
+  ui.forced = !!forced;
+  ui.nm = '';
+  const p = BY_ID[id];
+  const open = openSlots();
+  /* his own spot if it's free, else another spot he actually played.
+     If none of those are open we pick nothing on purpose — better the host
+     assigns him out of position deliberately than we quietly stick a
+     second baseman behind the plate. */
+  ui.slot = (p.e.find(e => e === p.p && open.includes(e)))
+         || p.e.find(e => open.includes(e))
+         || '';
+  state.card = { id, st: ui.st, slot: ui.slot, forced: !!forced };
+  $('dispName').value = p.n;
+  persist();
+  publish();
+}
+
+/* display-name override — only rides along when it actually differs */
+function applyDispName(){
+  const p = ui.pickId ? BY_ID[ui.pickId] : null;
+  if(!p) return;
+  const v = $('dispName').value.trim();
+  ui.nm = (v && v !== p.n) ? v : '';
+  if(ui.nm) state.card.nm = ui.nm; else delete state.card.nm;
+  publish();
+}
+$('dispName').addEventListener('change', applyDispName);
+$('dispName').addEventListener('keydown', e => { if(e.key === 'Enter') applyDispName(); });
+$('dispNameReset').addEventListener('click', () => {
+  const p = ui.pickId ? BY_ID[ui.pickId] : null;
+  if(!p) return;
+  $('dispName').value = p.n;
+  applyDispName();
+});
+
+/* ============================================================
+   RANDOM ROLL
+   ============================================================ */
+$('rollBtn').addEventListener('click', () => {
+  const st = ui.st;
+  const full = poolFor(st);
+  if(!full.length){ alert('No players carried for that state.'); return; }
+  const mode = $('rollPool').value;
+  const open = new Set(openSlots());
+  let cand = full;
+  if(mode === 'top25') cand = full.slice(0,25);
+  else if(mode === 'deep') cand = full.slice(25).length ? full.slice(25) : full;
+  else if(mode === 'openpos'){
+    const f = full.filter(p => p.e.some(e => open.has(e)));
+    cand = f.length ? f : full;
+  }
+  const pick = cand[Math.floor(Math.random()*cand.length)];
+
+  /* names the display spins through before it lands */
+  const spin = [];
+  const src = cand.length > 1 ? cand : full;
+  for(let i=0; i<Math.min(26, src.length); i++){
+    spin.push(src[Math.floor(Math.random()*src.length)].id);
+  }
+  state.roll = {
+    nonce: (state.roll.nonce||0) + 1,
+    st, finalId: pick.id, pool: spin,
+    idx: full.indexOf(pick) + 1, of: full.length
+  };
+  state.show.roll = true;
+  state.show.card = false;
+  selectPlayer(pick.id, true);
+  publish(true);                 // a spin always goes out, nonce and all
+});
+
+/* ============================================================
+   SCOUTING CARD
+   ============================================================ */
+function bioText(p){
+  const isP = p.p === 'P';
+  const hand = isP
+    ? (p.t === 'L' ? 'Left-handed ' : p.t === 'R' ? 'Right-handed ' : '')
+    : (p.b === 'S' ? 'Switch-hitting ' : p.b === 'L' ? 'Left-handed-hitting ' : p.b === 'R' ? 'Right-handed-hitting ' : '');
+  const pos = POS_NAMES[p.p] || p.p;
+  const where = p.c ? `${p.c}, ${sName(p._st)}` : sName(p._st);
+  let s = `${hand}${pos} from ${where}${p.bd ? ` (b. ${p.bd})` : ''}.`;
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  if(p.y) s += ` Played ${p.y.replace('-','–')}${p.sn ? `, ${p.sn} season${p.sn>1?'s':''}` : ''}.`;
+  if(p.pk) s += ` Best year: ${war(p.pk)} WAR in ${p.pky}.`;
+  const others = p.e.filter(e => e !== p.p);
+  if(others.length) s += ` Also played ${others.join(', ')}.`;
+  return s;
+}
+function statChips(p){
+  const out = [];
+  const push = (k,v) => { if(v!=null && v!=='') out.push(`<div class="s"><span class="v">${esc(v)}</span><span class="k">${k}</span></div>`); };
+  const isP = p.p === 'P';
+  const pitch = () => { const s=p.pi; if(!s) return;
+    push('W-L', `${s.w||0}-${s.l||0}`); push('ERA', s.era); push('IP', s.ip);
+    push('SO', s.so); push('WHIP', s.whip); if(s.sv) push('SV', s.sv);
+    if(s.gs) push('GS', s.gs); if(s.cg) push('CG', s.cg); };
+  const hit = () => { const s=p.h; if(!s) return;
+    push('AVG', s.avg); push('HR', s.hr); push('RBI', s.rbi); push('H', s.h);
+    push('R', s.r); if(s.sb) push('SB', s.sb); push('OPS', s.ops);
+    push('OBP', s.obp); push('SLG', s.slg); push('G', s.g); push('PA', s.pa); };
+  if(isP){
+    pitch();
+    if(p.h && (p.h.hr||0) >= 25) hit();       /* Ruth-types only */
+  } else {
+    hit();
+    if(p.pi && (p.pi.w||0) >= 15) pitch();
+  }
+  return out.join('');
+}
+function renderScout(){
+  const p = ui.pickId ? BY_ID[ui.pickId] : null;
+  $('scout').classList.toggle('on', !!p);
+  $('scout').classList.toggle('forced', !!ui.forced);
+  if(!p) return;
+  $('scoutImg').src = headshot(p.id);
+  $('scoutImg').onerror = () => { $('scoutImg').style.visibility='hidden'; };
+  $('scoutImg').style.visibility = 'visible';
+  $('scoutName').textContent = ui.nm || p.n;
+  if(!$('dispName').matches(':focus')) $('dispName').value = ui.nm || p.n;
+  const bits = [`${p.p}${p.e.length>1?' ('+p.e.join('/')+')':''}`, sName(p._st), p.y||''];
+  if(p.br) bits.push(`<a href="https://www.baseball-reference.com/players/${p.br[0]}/${p.br}.shtml" target="_blank" rel="noopener" style="color:var(--gold)">BBRef ↗</a>`);
+  $('scoutLine').innerHTML = bits.filter(Boolean).join(' &nbsp;•&nbsp; ');
+  $('scoutBio').textContent = bioText(p);
+  $('scoutWar').querySelector('.num').textContent = war(p.w);
+  $('scoutStats').innerHTML = statChips(p);
+  const acc = [];
+  if(p.hof) acc.push(`<span class="a hof">★ Hall of Fame</span>`);
+  (p.aw||[]).forEach(a => acc.push(`<span class="a">${esc(a)}</span>`));
+  if(p.ws) acc.push(`<span class="a">${p.ws===1?'World Series champ':p.ws+'× World Series'}</span>`);
+  if(p.wp && p.wb && Math.min(p.wp,p.wb) > 3) acc.push(`<span class="a">${war(p.wb)} WAR bat / ${war(p.wp)} WAR arm</span>`);
+  $('scoutAcc').innerHTML = acc.join('') || `<span class="a" style="opacity:.55">no major awards</span>`;
+
+  const open = openSlots();
+  $('slotBtns').innerHTML = SLOTS.map(s => {
+    const taken = !!state.lineup[s];
+    const cls = ['slotBtn'];
+    if(taken) cls.push('taken');
+    if(p.e.includes(s)) cls.push('elig');
+    if(ui.slot === s) cls.push('on');
+    return `<div class="${cls.join(' ')}" data-slot="${s}">${s}</div>`;
+  }).join('');
+  $('slotBtns').querySelectorAll('.slotBtn:not(.taken)').forEach(el =>
+    el.addEventListener('click', () => {
+      ui.slot = el.dataset.slot;
+      state.card.slot = ui.slot;
+      publish();
+    }));
+  $('lockBtn').disabled = !ui.slot || !!state.lineup[ui.slot];
+  $('lockBtn').textContent = ui.slot ? `🔒 LOCK IN AT ${ui.slot}` : '🔒 pick a spot first';
+  const openNow = openSlots();
+  const fits = p.e.some(e => openNow.includes(e));
+  $('slotWarn').style.display = fits ? 'none' : 'block';
+  $('slotWarn').textContent = `Nothing he actually played is still open (${p.e.join('/')}). `
+    + `Pick where he's going — he'll be out of position.`;
+  if(ui.slot && !p.e.includes(ui.slot)){
+    $('slotWarn').style.display = 'block';
+    $('slotWarn').textContent = `Heads up: ${p.n} never played ${ui.slot} (${p.e.join('/')}).`;
+  }
+}
+
+$('revealBtn').addEventListener('click', () => {
+  if(!ui.pickId) return;
+  state.show.card = true;
+  state.show.roll = false;
+  publish();
+});
+$('clearPickBtn').addEventListener('click', () => {
+  ui.pickId = null; ui.slot = '';
+  state.card = { id:null, st:'', slot:'', forced:false };
+  state.show.card = false; state.show.roll = false;
+  publish();
+});
+
+/* ============================================================
+   LOCK IN
+   ============================================================ */
+$('lockBtn').addEventListener('click', () => {
+  if(!ui.pickId || !ui.slot || state.lineup[ui.slot]) return;
+  state.lineup[ui.slot] = { id: ui.pickId, st: ui.st, forced: !!ui.forced };
+  if(ui.nm) state.lineup[ui.slot].nm = ui.nm;
+  state.statesUsed.push({ st: ui.st, ok: ui.verdict !== false });
+  state.round = Math.min(9, Object.keys(state.lineup).length + 1);
+  state.show.lineup = true;
+  state.show.roll = false;
+  state.results.best = null;          // lineup changed, best team is stale
+  ui = { st:'', verdict:null, pickId:null, forced:false, slot:'', nm:'' };
+  state.card = { id:null, st:'', slot:'', forced:false };
+  $('pickBlock').style.display = 'none';
+  $('rollBlock').style.display = 'none';
+  $('gotItBtn').disabled = true;
+  $('missedBtn').disabled = true;
+  publish();
+});
+
+/* ============================================================
+   LINEUP TABLE
+   ============================================================ */
+function renderLineup(){
+  let total = 0;
+  $('lineupBody').innerHTML = SLOTS.map(s => {
+    const e = state.lineup[s];
+    const p = e ? BY_ID[e.id] : null;
+    if(p) total += p.w;
+    return `<tr>
+      <td class="pos">${s}</td>
+      <td>${p ? esc(e.nm || p.n) + (e.forced?' <span class="forced">🎲 FORCED</span>':'') : '<span class="empty">open</span>'}</td>
+      <td class="st">${p ? esc(e.st)+' — '+esc(sName(e.st)) : ''}</td>
+      <td class="war">${p ? war(p.w) : '—'}</td>
+      <td>${p ? `<button class="ghost" data-rm="${s}">✕</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+  $('lineupBody').querySelectorAll('button[data-rm]').forEach(el =>
+    el.addEventListener('click', () => {
+      const s = el.dataset.rm;
+      if(!confirm(`Remove ${BY_ID[state.lineup[s].id].n} from ${s}?`)) return;
+      const st = state.lineup[s].st;
+      delete state.lineup[s];
+      const i = state.statesUsed.map(u=>u.st).lastIndexOf(st);
+      if(i >= 0) state.statesUsed.splice(i,1);
+      state.round = Math.min(9, Object.keys(state.lineup).length + 1);
+      state.results.best = null;
+      publish();
+    }));
+  $('totalWar').textContent = war(total);
+  return total;
+}
+
+/* ============================================================
+   BEST POSSIBLE TEAM
+   ============================================================ */
+function bestPlayerAt(st, slot){
+  let b = null;
+  for(const p of (DATA.states[st]||[])) if(p.e.includes(slot) && (!b || p.w > b.w)) b = p;
+  return b;
+}
+function bestTeam(states, oneEach){
+  const uniq = [...new Set(states)];
+  if(!uniq.length) return { team:null, note:'No states used yet.' };
+
+  /* best[slotIndex][stateIndex] */
+  const grid = SLOTS.map(slot => uniq.map(st => bestPlayerAt(st, slot)));
+
+  if(!oneEach || uniq.length < SLOTS.length){
+    const out = {};
+    SLOTS.forEach((slot, i) => {
+      let b = null, bj = -1;
+      grid[i].forEach((p, j) => { if(p && (!b || p.w > b.w)){ b = p; bj = j; } });
+      if(b) out[slot] = { id:b.id, st:uniq[bj] };
+    });
+    const note = oneEach && uniq.length < SLOTS.length
+      ? `Only ${uniq.length} different state${uniq.length>1?'s':''} used — can't give every spot its own state, so states repeat here.`
+      : '';
+    return { team:out, note };
+  }
+
+  /* assignment problem: one distinct state per lineup spot */
+  const n = uniq.length, S = SLOTS.length, NEG = -1e9;
+  const size = 1 << n;
+  const dp = new Float64Array(size).fill(NEG);
+  const from = new Int32Array(size).fill(-1);
+  dp[0] = 0;
+  const pc = new Uint8Array(size);
+  for(let m=1; m<size; m++) pc[m] = pc[m>>1] + (m & 1);
+  for(let mask=0; mask<size; mask++){
+    if(dp[mask] === NEG) continue;
+    const i = pc[mask];
+    if(i >= S) continue;
+    for(let j=0; j<n; j++){
+      if(mask & (1<<j)) continue;
+      const p = grid[i][j];
+      const nm = mask | (1<<j);
+      const val = dp[mask] + (p ? p.w : 0);
+      if(val > dp[nm]){ dp[nm] = val; from[nm] = j; }
+    }
+  }
+  let bestMask = -1, bestVal = NEG;
+  for(let mask=0; mask<size; mask++){
+    if(pc[mask] === S && dp[mask] > bestVal){ bestVal = dp[mask]; bestMask = mask; }
+  }
+  if(bestMask < 0) return { team:null, note:'Could not solve.' };
+  const out = {};
+  let mask = bestMask;
+  for(let i=S-1; i>=0; i--){
+    const j = from[mask];
+    const p = grid[i][j];
+    if(p) out[SLOTS[i]] = { id:p.id, st:uniq[j] };
+    mask ^= (1<<j);
+  }
+  return { team:out, note:'' };
+}
+
+$('buildBestBtn').addEventListener('click', () => {
+  const states = state.statesUsed.map(u => u.st);
+  if(!states.length){ alert('No states used yet.'); return; }
+  const oneEach = $('oneEach').checked;
+  const { team, note } = bestTeam(states, oneEach);
+  state.results = { best: team, oneEach };
+  state.show.final = true;
+  publish();
+  renderBestOut(note);
+});
+$('oneEach').addEventListener('change', () => {
+  if(state.results.best) $('buildBestBtn').click();
+});
+$('showFinalBtn').addEventListener('click', () => {
+  state.show.final = true;
+  state.results.best = null;
+  publish();
+  $('bestOut').innerHTML = '';
+});
+$('hideFinalBtn').addEventListener('click', () => { state.show.final = false; publish(); });
+
+function renderBestOut(note){
+  const best = state.results.best;
+  if(!best){ $('bestOut').innerHTML = ''; return; }
+  let mine = 0, bw = 0, rows = '';
+  for(const s of SLOTS){
+    const mp = state.lineup[s] && BY_ID[state.lineup[s].id];
+    const bp = best[s] && BY_ID[best[s].id];
+    if(mp) mine += mp.w;
+    if(bp) bw += bp.w;
+    const same = mp && bp && mp.id === bp.id;
+    rows += `<tr class="${same?'same':(mp&&bp&&bp.w>mp.w+0.05?'better':'')}">
+      <td class="pos" style="font-family:'Bebas Neue';color:var(--gold);">${s}</td>
+      <td>${mp?esc(state.lineup[s].nm || mp.n):'<span class="empty">—</span>'}</td>
+      <td class="w">${mp?war(mp.w):'—'}</td>
+      <td>${bp?esc(bp.n)+` <span class="hint">${esc(best[s].st)}</span>`:'<span class="empty">none available</span>'}</td>
+      <td class="w">${bp?war(bp.w):'—'}</td>
+    </tr>`;
+  }
+  $('bestOut').innerHTML =
+    (note ? `<div class="warn">${esc(note)}</div>` : '') +
+    `<table class="cmpTable">
+      <thead><tr><th>Pos</th><th>Their pick</th><th style="text-align:right">WAR</th><th>Best available</th><th style="text-align:right">WAR</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr>
+        <td></td><td><b>Their team</b></td><td class="w"><b>${war(mine)}</b></td>
+        <td><b>Best possible</b></td><td class="w"><b>${war(bw)}</b></td>
+      </tr></tfoot>
+    </table>
+    <div class="hint">Gap: <b style="color:var(--red)">${war(bw-mine)} WAR</b> left on the table.
+    States used: ${[...new Set(state.statesUsed.map(u=>u.st))].join(', ')}</div>`;
+}
+
+/* ============================================================
+   DISPLAY TOGGLES
+   ============================================================ */
+$('showLineupBtn').addEventListener('click', () => { state.show.lineup = !state.show.lineup; publish(); });
+$('showStripBtn').addEventListener('click', () => { state.show.strip = !state.show.strip; publish(); });
+$('hideAllBtn').addEventListener('click', () => {
+  state.show = { timer:false, banner:false, roll:false, card:false, lineup:false, strip:false, final:false };
+  publish();
+});
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){
+  $('roundNum').textContent = state.round;
+  const filled = Object.keys(state.lineup).length;
+  $('roundNote').textContent = filled >= 9 ? '— lineup full, go to Final' : `— ${9-filled} spot${9-filled===1?'':'s'} left`;
+
+  $('stateGrid').querySelectorAll('.stBtn').forEach(el => {
+    el.classList.toggle('on', el.dataset.st === ui.st);
+    el.classList.toggle('used', state.statesUsed.some(u => u.st === el.dataset.st));
+  });
+  if(ui.st){
+    $('statePicked').style.display = 'flex';
+    $('statePickedName').textContent = sName(ui.st).toUpperCase();
+    $('statePickedCount').textContent = `${poolFor(ui.st).length} players carried · top guy ${poolFor(ui.st)[0] ? poolFor(ui.st)[0].n + ' (' + war(poolFor(ui.st)[0].w) + ')' : '—'}`;
+    $('brefLink').href = `https://www.baseball-reference.com/bio/${ui.st}_born.shtml`;
+  } else {
+    $('statePicked').style.display = 'none';
+  }
+
+  renderScout();
+  renderLineup();
+
+  if(!$('teamName').matches(':focus')) $('teamName').value = state.team || '';
+  const chips = {chipTimer:'timer', chipBanner:'banner', chipRoll:'roll', chipCard:'card',
+                 chipLineup:'lineup', chipStrip:'strip', chipFinal:'final'};
+  for(const id in chips) $(id).classList.toggle('on', !!state.show[chips[id]]);
+  const tog = (id, on, noun) => {
+    $(id).classList.toggle('live', !!on);
+    $(id).textContent = (on ? 'Hide ' : 'Show ') + noun;
+  };
+  tog('showLineupBtn', state.show.lineup, 'Board on Display');
+  tog('showStripBtn',  state.show.strip,  'States Strip');
+  tog('showTimerBtn',  state.show.timer,  'Timer on Display');
+  $('revealBtn').textContent = state.show.card ? '📺 Card is on air' : '📺 Reveal Card on Display';
+  $('showFinalBtn').classList.toggle('live', !!state.show.final);
+}
+
+/* ============================================================
+   Two control tabs would quietly overwrite each other's saved game,
+   which is a rough way to lose a lineup mid-show. Each tab stamps an id
+   and shouts if it sees someone else writing.
+   ============================================================ */
+window.addEventListener('storage', e => {
+  if(e.key === 'geo_writer' && e.newValue && e.newValue !== TAB_ID){
+    $('dupWarn').style.display = 'block';
+    $('dupWarn').innerHTML = '<b>Another control tab is open on this browser.</b> ' +
+      'Two tabs overwrite each other\'s game state — close the other one, then reload this page.';
+  }
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+restore();
+buildStateGrid();
+tickBase = performance.now();
+$('durMin').value = Math.floor(state.timer.dur/60);
+$('durSec').value = state.timer.dur % 60;
+if(ui.st){
+  $('gotItBtn').disabled = false;
+  $('missedBtn').disabled = false;
+  if(ui.verdict === true){ $('pickBlock').style.display='block'; renderPlayerList(); }
+  if(ui.verdict === false){ $('rollBlock').style.display='block'; }
+}
+renderAll();
+if(state.results.best) renderBestOut('');
+if(TOPIC) connect();
+
+if(MISSING.length){
+  const w = document.getElementById('dupWarn');
+  if(w){
+    w.style.display = 'block';
+    w.innerHTML = '<b>Build problem:</b> missing element(s) <code>#' + MISSING.join('</code>, <code>#') +
+      '</code>. Those controls do nothing — everything else still works.';
+  }
+}
+</script>
+</body>
+</html>

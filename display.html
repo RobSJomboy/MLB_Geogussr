@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Talkin' Baseball — Geoguessr Lineup DISPLAY</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{
+    width:1920px; height:1080px;
+    background:transparent;
+    overflow:hidden;
+    font-family:'DM Sans', Arial, sans-serif;
+  }
+  #stage{ position:relative; width:1920px; height:1080px; }
+
+  :root{
+    --navy:#0d1f2d;
+    --navy2:#132c40;
+    --gold:#fbcc7a;
+    --gold2:#e0a94f;
+    --green:#3fbf6f;
+    --red:#e2453c;
+    --ink:#f3f7fb;
+  }
+
+  .bebas{ font-family:'Bebas Neue', Impact, sans-serif; letter-spacing:1px; }
+  .mono{ font-family:'DM Mono', monospace; }
+
+  /* ==================== TIMER ==================== */
+  #timerWrap{
+    position:absolute; left:50%; top:44px;
+    transform:translate(-50%, -220px);
+    opacity:0;
+    transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  #timerWrap.show{ opacity:1; transform:translate(-50%,0); }
+
+  #timerBox{
+    background:linear-gradient(180deg, var(--navy2), var(--navy));
+    border:4px solid var(--gold);
+    border-radius:20px;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);
+    padding:14px 54px 18px;
+    display:flex; flex-direction:column; align-items:center;
+    min-width:430px;
+    position:relative; overflow:hidden;
+  }
+  #timerBox::after{
+    content:''; position:absolute; left:0; bottom:0; height:7px; width:100%;
+    background:var(--gold); transform-origin:left center;
+    transform:scaleX(var(--prog, 1));
+    transition:transform 250ms linear;
+  }
+  #timerLabel{
+    font-size:26px; color:var(--gold); text-transform:uppercase;
+    letter-spacing:5px; font-weight:700; font-family:'DM Sans',sans-serif;
+    margin-bottom:-6px;
+  }
+  #timerClock{
+    font-size:132px; line-height:1; color:#fff;
+    font-variant-numeric:tabular-nums; letter-spacing:3px;
+    text-shadow:0 5px 16px rgba(0,0,0,.5);
+  }
+  #timerWrap.warn #timerClock{ color:#ffd98a; }
+  #timerWrap.warn #timerBox{ border-color:#ffd98a; }
+  #timerWrap.crit #timerClock{ color:#ff8b82; animation:pulseNum 1s ease-in-out infinite; }
+  #timerWrap.crit #timerBox{ border-color:var(--red); box-shadow:0 0 46px rgba(226,69,60,.6); }
+  #timerWrap.crit #timerBox::after{ background:var(--red); }
+  #timerWrap.done #timerClock{ color:#fff; }
+  #timerWrap.done #timerBox{ background:linear-gradient(180deg,#b8231b,#7d1610); border-color:#fff; animation:shake .5s ease 3; }
+  @keyframes pulseNum{ 50%{ transform:scale(1.06); } }
+  @keyframes shake{ 25%{transform:translateX(-9px);} 75%{transform:translateX(9px);} }
+
+  #roundTag{
+    margin-top:10px;
+    background:var(--gold); color:var(--navy);
+    font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    padding:5px 22px; border-radius:20px;
+    box-shadow:0 6px 16px rgba(0,0,0,.4);
+  }
+
+  /* ==================== STATE BANNER ==================== */
+  #banner{
+    position:absolute; left:118px; top:196px; max-width:1160px;
+    opacity:0; transform:translateX(-90px);
+    transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 480ms ease;
+  }
+  #banner.show{ opacity:1; transform:translateX(0); }
+  #bannerKicker{
+    display:inline-block;
+    background:var(--gold); color:var(--navy);
+    font-size:24px; font-weight:700; letter-spacing:5px; text-transform:uppercase;
+    padding:6px 20px; border-radius:6px 6px 0 0;
+  }
+  #bannerBody{
+    display:inline-flex;
+    background:linear-gradient(180deg, var(--navy2), var(--navy));
+    border-left:12px solid var(--gold);
+    border-radius:0 14px 14px 0;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);
+    padding:16px 48px 22px 40px;
+    align-items:center; gap:34px;
+  }
+  #bannerState{
+    font-size:112px; line-height:.94; color:#fff;
+    text-shadow:0 5px 16px rgba(0,0,0,.5);
+  }
+  #verdict{
+    font-size:44px; padding:10px 30px; border-radius:12px;
+    color:#fff; white-space:nowrap;
+    transform:rotate(-4deg) scale(.4); opacity:0;
+    transition:transform 420ms cubic-bezier(.2,1.6,.4,1), opacity 300ms ease;
+  }
+  #verdict.on{ transform:rotate(-4deg) scale(1); opacity:1; }
+  #verdict.good{ background:var(--green); box-shadow:0 8px 22px rgba(63,191,111,.45); }
+  #verdict.bad{ background:var(--red); box-shadow:0 8px 22px rgba(226,69,60,.45); }
+
+  /* ==================== PLAYER CARD ==================== */
+  #card{
+    position:absolute; left:118px; top:404px; width:1160px;
+    opacity:0; transform:translateY(70px) scale(.97);
+    transition:transform 640ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+  }
+  #card.show{ opacity:1; transform:translateY(0) scale(1); }
+  #cardInner{
+    background:linear-gradient(135deg, var(--navy2) 0%, var(--navy) 62%);
+    border:4px solid var(--gold);
+    border-radius:22px;
+    box-shadow:0 22px 56px rgba(0,0,0,.6);
+    display:flex; overflow:hidden;
+  }
+  #shotWrap{
+    flex:0 0 300px; height:340px; position:relative;
+    background:linear-gradient(180deg,#1c3b55,#0d1f2d);
+    border-right:4px solid var(--gold);
+  }
+  #shot{ width:300px; height:340px; object-fit:cover; object-position:top center; display:block; }
+  #monogram{
+    position:absolute; inset:0; display:none;
+    align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif; font-size:126px; color:rgba(251,204,122,.55);
+  }
+  #shotWrap.nopic #shot{ display:none; }
+  #shotWrap.nopic #monogram{ display:flex; }
+  #posBadge{
+    position:absolute; left:0; bottom:0;
+    background:var(--gold); color:var(--navy);
+    font-family:'Bebas Neue',sans-serif; font-size:40px; letter-spacing:2px;
+    padding:2px 18px 0; border-radius:0 12px 0 0;
+  }
+  #cardMain{ flex:1; padding:20px 30px 22px; min-width:0; }
+
+  #cardTop{ display:flex; align-items:flex-start; gap:16px; }
+  #cardName{
+    font-size:76px; line-height:.92; color:#fff; flex:1;
+    text-shadow:0 4px 12px rgba(0,0,0,.45);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  #warChip{
+    flex:0 0 auto; text-align:center;
+    background:var(--gold); color:var(--navy);
+    border-radius:14px; padding:6px 22px 8px;
+    box-shadow:0 8px 20px rgba(0,0,0,.4);
+  }
+  #warChip .num{ font-family:'Bebas Neue',sans-serif; font-size:62px; line-height:.9; display:block; }
+  #warChip .lbl{ font-size:16px; font-weight:700; letter-spacing:4px; text-transform:uppercase; }
+
+  #cardMeta{
+    margin-top:4px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    color:var(--gold); font-size:27px; font-weight:500;
+  }
+  #cardMeta .dot{ opacity:.45; }
+  #cardMeta .st{
+    background:rgba(251,204,122,.16); border:2px solid var(--gold);
+    color:var(--gold); border-radius:8px; padding:1px 12px 3px;
+    font-family:'Bebas Neue',sans-serif; font-size:29px; letter-spacing:2px;
+  }
+
+  #statLine{
+    margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .stat{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(251,204,122,.35);
+    border-radius:10px; padding:5px 15px 7px; text-align:center; min-width:88px;
+  }
+  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:35px; color:#fff; line-height:1; display:block; }
+  .stat .k{ font-size:14px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:700; }
+
+  #accolades{ margin-top:13px; display:flex; gap:9px; flex-wrap:wrap; align-items:center; }
+  .acc{
+    background:rgba(251,204,122,.16); border:1px solid rgba(251,204,122,.5);
+    color:#ffe6bb; font-size:19px; font-weight:500;
+    border-radius:20px; padding:3px 15px 5px;
+  }
+  .acc.hof{ background:var(--gold); color:var(--navy); font-weight:700; border-color:#fff; }
+
+  #forcedFlag{
+    margin-top:12px; display:none; align-items:center; gap:12px;
+    background:rgba(226,69,60,.2); border-left:6px solid var(--red);
+    padding:7px 18px; border-radius:0 8px 8px 0;
+    color:#ffb3ad; font-size:24px; font-weight:700; letter-spacing:1px;
+  }
+  #card.forced #forcedFlag{ display:flex; }
+
+  /* ==================== RANDOM ROLL ==================== */
+  #roll{
+    position:absolute; left:118px; top:404px; width:1160px; height:340px;
+    opacity:0; transform:scale(.95);
+    transition:transform 400ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
+  }
+  #roll.show{ opacity:1; transform:scale(1); }
+  #rollInner{
+    height:340px;
+    background:linear-gradient(135deg,#3a1414 0%, var(--navy) 70%);
+    border:4px solid var(--red);
+    border-radius:22px;
+    box-shadow:0 22px 56px rgba(0,0,0,.6);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    overflow:hidden; position:relative;
+  }
+  #rollKicker{
+    font-size:30px; letter-spacing:7px; color:#ff9a92; text-transform:uppercase; font-weight:700;
+  }
+  #rollWindow{
+    margin-top:6px; height:126px; width:100%;
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  #rollName{
+    font-family:'Bebas Neue',sans-serif; font-size:104px; color:#fff; line-height:1;
+    text-shadow:0 5px 18px rgba(0,0,0,.55); white-space:nowrap;
+    padding:0 40px; text-align:center;
+  }
+  #roll.spinning #rollName{ opacity:.92; filter:blur(.6px); }
+  #rollSub{ font-size:27px; color:#ffcdc8; letter-spacing:2px; }
+  #rollIdx{ margin-top:8px; font-family:'DM Mono',monospace; font-size:22px; color:rgba(255,255,255,.5); }
+  #roll.landed #rollInner{ border-color:var(--gold); animation:landPop 480ms cubic-bezier(.2,1.5,.3,1); }
+  #roll.landed #rollName{ color:var(--gold); }
+  @keyframes landPop{ 0%{transform:scale(1);} 40%{transform:scale(1.045);} 100%{transform:scale(1);} }
+
+  /* ==================== LINEUP BOARD ==================== */
+  #board{
+    position:absolute; right:56px; top:120px; width:496px;
+    opacity:0; transform:translateX(110px);
+    transition:transform 640ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+  }
+  #board.show{ opacity:1; transform:translateX(0); }
+  #boardHead{
+    background:var(--gold); color:var(--navy);
+    border-radius:14px 14px 0 0; padding:9px 20px 11px;
+    text-align:center;
+  }
+  #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:46px; line-height:.95; }
+  #boardSub{ font-size:15px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.75; }
+  #boardBody{
+    background:linear-gradient(180deg, rgba(19,44,64,.97), rgba(13,31,45,.97));
+    border:3px solid var(--gold); border-top:none;
+    padding:9px;
+  }
+  .slot{
+    display:flex; align-items:center; gap:11px;
+    padding:6px 9px; border-radius:9px; margin-bottom:5px;
+    background:rgba(255,255,255,.05);
+    border-left:5px solid rgba(251,204,122,.28);
+    min-height:52px;
+    transition:background 300ms ease, border-color 300ms ease;
+  }
+  .slot:last-child{ margin-bottom:0; }
+  .slot.filled{ background:rgba(251,204,122,.13); border-left-color:var(--gold); }
+  .slot.justAdded{ animation:slotIn 700ms cubic-bezier(.2,1.4,.3,1); }
+  @keyframes slotIn{ 0%{ transform:translateX(46px); background:rgba(251,204,122,.5);} 100%{ transform:translateX(0);} }
+  .slot .pos{
+    flex:0 0 58px; font-family:'Bebas Neue',sans-serif; font-size:33px;
+    color:var(--gold); text-align:center; letter-spacing:1px;
+  }
+  .slot .who{ flex:1; min-width:0; }
+  .slot .nm{
+    font-size:25px; font-weight:700; color:#fff; line-height:1.05;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .slot .sub{ font-size:15px; color:rgba(251,204,122,.85); letter-spacing:1px; text-transform:uppercase; }
+  .slot .sub .forced{ color:#ff9a92; font-weight:700; }
+  .slot .empty{ font-size:22px; color:rgba(255,255,255,.28); font-style:italic; }
+  .slot .w{
+    flex:0 0 auto; font-family:'Bebas Neue',sans-serif; font-size:34px; color:#fff;
+    font-variant-numeric:tabular-nums;
+  }
+  .slot.filled .w{ color:var(--gold); }
+
+  #boardFoot{
+    background:var(--gold); color:var(--navy);
+    border-radius:0 0 14px 14px; padding:8px 20px 11px;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 14px 34px rgba(0,0,0,.45);
+  }
+  #boardFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+  #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:58px; line-height:.9; }
+
+  /* ==================== FINAL / BEST TEAM ==================== */
+  #final{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity 620ms ease;
+  }
+  #final.show{ opacity:1; }
+  #finalCard{
+    background:linear-gradient(160deg, var(--navy2) 0%, #091722 75%);
+    border:5px solid var(--gold);
+    border-radius:26px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7);
+    padding:26px 42px 32px;
+    transform:scale(.94);
+    transition:transform 620ms cubic-bezier(.2,.9,.2,1);
+  }
+  #final.show #finalCard{ transform:scale(1); }
+  #finalKicker{
+    text-align:center; color:var(--gold);
+    font-size:24px; font-weight:700; letter-spacing:8px; text-transform:uppercase;
+  }
+  #finalTeam{
+    text-align:center; font-family:'Bebas Neue',sans-serif; font-size:78px;
+    color:#fff; line-height:1; margin-top:2px;
+  }
+  #finalBig{
+    text-align:center; margin:10px 0 4px;
+  }
+  #finalBig .num{
+    font-family:'Bebas Neue',sans-serif; font-size:184px; line-height:.86; color:var(--gold);
+    text-shadow:0 8px 26px rgba(0,0,0,.6); display:block;
+  }
+  #finalBig .lbl{
+    font-size:26px; font-weight:700; letter-spacing:9px; color:#fff; text-transform:uppercase;
+  }
+  #finalGrade{
+    text-align:center; margin-top:8px;
+    display:inline-block; background:var(--gold); color:var(--navy);
+    font-size:27px; font-weight:700; letter-spacing:3px; padding:5px 26px 7px; border-radius:22px;
+  }
+  #gradeRow{ text-align:center; }
+
+  #cmp{ margin-top:22px; display:none; }
+  #final.withBest #cmp{ display:block; }
+  #cmpHead{
+    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
+    gap:10px; align-items:end; padding:0 4px 7px;
+    border-bottom:2px solid rgba(251,204,122,.4);
+  }
+  #cmpHead div{ font-size:16px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
+  #cmpHead .r{ text-align:right; }
+  .cmpRow{
+    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
+    gap:10px; align-items:center; padding:5px 4px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  .cmpRow .pos{ font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--gold); }
+  .cmpRow .nm{ font-size:23px; color:#fff; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cmpRow .nm .st{ color:rgba(251,204,122,.7); font-size:17px; font-family:'DM Mono',monospace; }
+  .cmpRow .w{ font-family:'Bebas Neue',sans-serif; font-size:29px; text-align:right; font-variant-numeric:tabular-nums; }
+  .cmpRow .mine{ color:#fff; }
+  .cmpRow .best{ color:var(--gold); }
+  .cmpRow.same .nm.bestn{ color:var(--green); }
+  .cmpRow .empty{ color:rgba(255,255,255,.3); font-style:italic; font-size:20px; }
+  #cmpFoot{
+    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
+    gap:10px; align-items:center; margin-top:9px; padding-top:10px;
+    border-top:2px solid var(--gold);
+  }
+  #cmpFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
+  #cmpFoot .w{ font-family:'Bebas Neue',sans-serif; font-size:42px; text-align:right; font-variant-numeric:tabular-nums; }
+  /* the two totals are the whole point of this card — they were inheriting a
+     dark colour because .mine/.best were scoped to .cmpRow only */
+  #cmpFoot .w.mine{ color:#fff; }
+  #cmpFoot .w.best{ color:var(--gold); }
+  #leftTable{
+    margin-top:14px; text-align:center;
+    font-size:25px; color:#ffb3ad; font-weight:700; letter-spacing:1px;
+  }
+  #leftTable b{ color:var(--red); font-family:'Bebas Neue',sans-serif; font-size:34px; }
+
+  /* ==================== STATES-USED STRIP ==================== */
+  #strip{
+    position:absolute; left:118px; bottom:58px;
+    display:flex; gap:9px; align-items:center;
+    opacity:0; transform:translateY(40px);
+    transition:transform 560ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+  }
+  #strip.show{ opacity:1; transform:translateY(0); }
+  #strip .lbl{
+    font-size:17px; font-weight:700; letter-spacing:4px; text-transform:uppercase;
+    color:var(--gold); margin-right:6px;
+  }
+  .stPill{
+    background:linear-gradient(180deg,var(--navy2),var(--navy));
+    border:2px solid var(--gold);
+    color:#fff; font-family:'Bebas Neue',sans-serif; font-size:29px; letter-spacing:2px;
+    padding:2px 14px 0; border-radius:8px;
+    box-shadow:0 6px 16px rgba(0,0,0,.4);
+  }
+  .stPill.miss{ border-color:var(--red); color:#ffb3ad; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- TIMER -->
+  <div id="timerWrap">
+    <div id="timerBox">
+      <div id="timerLabel">Time Remaining</div>
+      <div id="timerClock" class="bebas">3:00</div>
+    </div>
+    <div id="roundTag">Round 1 of 9</div>
+  </div>
+
+  <!-- STATE BANNER -->
+  <div id="banner">
+    <div id="bannerKicker">Birthplace State</div>
+    <div id="bannerBody">
+      <div id="bannerState" class="bebas">TEXAS</div>
+      <div id="verdict" class="bebas">Got It</div>
+    </div>
+  </div>
+
+  <!-- RANDOM ROLL -->
+  <div id="roll">
+    <div id="rollInner">
+      <div id="rollKicker">Missed It — Random Draw</div>
+      <div id="rollWindow"><div id="rollName">—</div></div>
+      <div id="rollSub" class="bebas">You're stuck with him</div>
+      <div id="rollIdx"></div>
+    </div>
+  </div>
+
+  <!-- PLAYER CARD -->
+  <div id="card">
+    <div id="cardInner">
+      <div id="shotWrap">
+        <img id="shot" src="" alt="">
+        <div id="monogram" class="bebas">?</div>
+        <div id="posBadge">CF</div>
+      </div>
+      <div id="cardMain">
+        <div id="cardTop">
+          <div id="cardName" class="bebas">Player Name</div>
+          <div id="warChip"><span class="num bebas">0.0</span><span class="lbl">Career WAR</span></div>
+        </div>
+        <div id="cardMeta"></div>
+        <div id="statLine"></div>
+        <div id="accolades"></div>
+        <div id="forcedFlag">🎲 Forced pick — they missed the state</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINEUP BOARD -->
+  <div id="board">
+    <div id="boardHead">
+      <div id="boardTeam" class="bebas">The Lineup</div>
+      <div id="boardSub">Geoguessr Lineup Challenge</div>
+    </div>
+    <div id="boardBody"></div>
+    <div id="boardFoot">
+      <div class="lbl">Total WAR</div>
+      <div id="boardTotal" class="bebas">0.0</div>
+    </div>
+  </div>
+
+  <!-- STATES USED -->
+  <div id="strip"><span class="lbl">States Visited</span></div>
+
+  <!-- FINAL -->
+  <div id="final">
+    <div id="finalCard">
+      <div id="finalKicker">Final Tally</div>
+      <div id="finalTeam" class="bebas">The Lineup</div>
+      <div id="finalBig"><span class="num bebas">0.0</span><span class="lbl">Total Career WAR</span></div>
+      <div id="gradeRow"><span id="finalGrade">—</span></div>
+      <div id="cmp">
+        <div id="cmpHead">
+          <div>Pos</div><div>Their Pick</div><div class="r">WAR</div>
+          <div>Best Available</div><div class="r">WAR</div>
+        </div>
+        <div id="cmpBody"></div>
+        <div id="cmpFoot">
+          <div></div>
+          <div class="lbl">Their Team</div><div class="w mine" id="cmpMine">0.0</div>
+          <div class="lbl">Best Possible</div><div class="w best" id="cmpBest">0.0</div>
+        </div>
+        <div id="leftTable"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="players.js"></script>
+<script>
+/* ============================================================
+   Talkin' Baseball — Geoguessr Lineup DISPLAY (OBS overlay)
+   Reads game state off an ntfy.sh topic. Player data comes from
+   players.js so the ntfy payload only ever carries ids.
+   ============================================================ */
+
+const params = new URLSearchParams(location.search);
+const TOPIC = params.get('topic') || '';
+
+const SLOTS = ['C','1B','2B','3B','SS','LF','CF','RF','P'];
+const DATA = window.GEO_DATA || {states:{}, stateNames:{}};
+
+/* id -> player, built once */
+const BY_ID = {};
+for(const st in DATA.states){
+  for(const p of DATA.states[st]){ p._st = st; BY_ID[p.id] = p; }
+}
+function player(id){ return BY_ID[id] || null; }
+/* the control page can override a name for the overlay (legal suffixes etc.) */
+function nameOf(p, entry){ return (entry && entry.nm) || (p ? p.n : ''); }
+function stateName(ab){ return (DATA.stateNames||{})[ab] || ab || ''; }
+function war(x){ return (Math.round((x||0)*10)/10).toFixed(1); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function headshot(id){
+  return `https://img.mlbstatic.com/mlb-photos/image/upload/w_360,q_auto:best/v1/people/${id}/headshot/67/current`;
+}
+
+/* ---------------- element refs ---------------- */
+const $ = id => document.getElementById(id);
+const timerWrap=$('timerWrap'), timerClock=$('timerClock'), timerBox=$('timerBox'), roundTag=$('roundTag');
+const banner=$('banner'), bannerState=$('bannerState'), verdict=$('verdict'), bannerKicker=$('bannerKicker');
+const roll=$('roll'), rollName=$('rollName'), rollIdx=$('rollIdx'), rollKicker=$('rollKicker'), rollSub=$('rollSub');
+const card=$('card'), shot=$('shot'), shotWrap=$('shotWrap'), monogram=$('monogram'), posBadge=$('posBadge');
+const cardName=$('cardName'), warChip=$('warChip'), cardMeta=$('cardMeta'), statLine=$('statLine'), accolades=$('accolades');
+const board=$('board'), boardBody=$('boardBody'), boardTeam=$('boardTeam'), boardTotal=$('boardTotal');
+const strip=$('strip'), final=$('final'), finalTeam=$('finalTeam'), finalGrade=$('finalGrade');
+const finalBigNum=document.querySelector('#finalBig .num');
+const cmpBody=$('cmpBody'), cmpMine=$('cmpMine'), cmpBest=$('cmpBest'), leftTable=$('leftTable');
+
+/* ============================================================
+   TIMER — control publishes {running, remaining, dur} and resyncs
+   every few seconds; we run our own smooth countdown in between.
+   ============================================================ */
+let T = { running:false, remaining:180, dur:180, base:0, nonce:-1 };
+let buzzed = false;
+
+function applyTimer(t, catchUp){
+  if(!t) return;
+  const wasNonce = T.nonce;
+  T.running = !!t.running;
+  T.remaining = Math.max(0, +t.remaining || 0);
+  /* On a fresh load (OBS source refreshed mid-round) the stored `remaining` is
+     as of whenever the control page last sent — stale. endsAt is absolute, so
+     use it to land on the real time. Live messages use `remaining`, which is
+     immune to clock skew between the two machines. */
+  if(catchUp && T.running && t.endsAt){
+    T.remaining = Math.max(0, (t.endsAt - Date.now())/1000);
+    if(T.remaining <= 0) T.running = false;
+  }
+  T.dur = +t.dur || 180;
+  T.base = performance.now();
+  if(t.nonce !== wasNonce){
+    T.nonce = t.nonce;
+    buzzed = false;            // a reset/start re-arms the buzzer
+  }
+  if(T.remaining > 0) buzzed = false;
+}
+
+function liveRemaining(){
+  if(!T.running) return T.remaining;
+  return Math.max(0, T.remaining - (performance.now() - T.base)/1000);
+}
+
+function paintTimer(){
+  const r = liveRemaining();
+  const secs = Math.ceil(r - 0.001);
+  const m = Math.floor(secs/60), s = secs%60;
+  timerClock.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  timerBox.style.setProperty('--prog', T.dur ? Math.max(0, r/T.dur) : 0);
+
+  timerWrap.classList.toggle('warn', r <= 60 && r > 15);
+  timerWrap.classList.toggle('crit', r <= 15 && r > 0);
+  timerWrap.classList.toggle('done', r <= 0);
+
+  if(r <= 0 && !buzzed && T.running){ buzzed = true; buzzer(); }
+  requestAnimationFrame(paintTimer);
+}
+requestAnimationFrame(paintTimer);
+
+/* Countdown ticks + buzzer via WebAudio (no asset files).
+   OBS browser sources usually allow this; wrapped so a block is harmless. */
+let AC = null;
+function audio(){
+  try{
+    if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if(AC.state === 'suspended') AC.resume();
+    return AC;
+  }catch(e){ return null; }
+}
+function tone(freq, dur, gain, type){
+  const ac = audio(); if(!ac) return;
+  try{
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, ac.currentTime);
+    g.gain.linearRampToValueAtTime(gain, ac.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + dur + 0.02);
+  }catch(e){}
+}
+function buzzer(){ tone(196, .55, .28); setTimeout(()=>tone(147,.75,.3), 240); }
+let lastTickSec = null;
+setInterval(() => {
+  if(!T.running) return;
+  const secs = Math.ceil(liveRemaining() - 0.001);
+  if(secs !== lastTickSec){
+    lastTickSec = secs;
+    if(secs > 0 && secs <= 10) tone(880, .07, .16, 'sine');
+  }
+}, 60);
+
+/* ============================================================
+   PLAYER CARD
+   ============================================================ */
+function statChips(p){
+  const out = [];
+  const push = (k,v) => { if(v != null && v !== '' && v !== '-') out.push(`<div class="stat"><span class="v">${esc(v)}</span><span class="k">${k}</span></div>`); };
+  const isP = p.p === 'P';
+  if(isP && p.pi){
+    const s = p.pi;
+    push('W-L', `${s.w||0}-${s.l||0}`);
+    push('ERA', s.era);
+    push('IP', s.ip);
+    push('SO', s.so);
+    push('WHIP', s.whip);
+    if(s.sv) push('SV', s.sv);
+  }
+  if(!isP && p.h){
+    const s = p.h;
+    push('AVG', s.avg);
+    push('HR', s.hr);
+    push('RBI', s.rbi);
+    push('H', s.h);
+    push('OPS', s.ops);
+    if(s.sb >= 100) push('SB', s.sb);
+  }
+  /* two-way guys (Ruth, Ohtani): show the other side too */
+  if(isP && p.h && (p.h.hr||0) >= 40){
+    push('AVG', p.h.avg); push('HR', p.h.hr);
+  } else if(!isP && p.pi && (p.pi.w||0) >= 20){
+    push('W-L', `${p.pi.w}-${p.pi.l}`); push('ERA', p.pi.era);
+  }
+  return out.slice(0, 7).join('');   /* one row — the card is 1160px wide */
+}
+
+function renderCard(c){
+  const p = player(c && c.id);
+  if(!p) return;
+  shotWrap.classList.remove('nopic');
+  shot.onerror = () => shotWrap.classList.add('nopic');
+  shot.src = headshot(p.id);
+  monogram.textContent = (p.n||'?').trim().charAt(0).toUpperCase();
+  posBadge.textContent = c.slot || p.p;
+  const shown = nameOf(p, c);
+  cardName.textContent = shown;
+  cardName.style.fontSize = shown.length > 19 ? '58px' : (shown.length > 15 ? '66px' : '76px');
+  warChip.querySelector('.num').textContent = war(p.w);
+
+  const bits = [];
+  bits.push(`<span class="st">${esc(c.st || p._st)}</span>`);
+  if(p.c) bits.push(esc(p.c));
+  if(p.y) bits.push(`<span class="dot">•</span>` + esc(p.y));
+  if(p.sn) bits.push(`<span class="dot">•</span>` + p.sn + (p.sn===1?' season':' seasons'));
+  if(p.b && p.t) bits.push(`<span class="dot">•</span>` + `Bats ${esc(p.b)} / Throws ${esc(p.t)}`);
+  cardMeta.innerHTML = bits.join(' ');
+
+  statLine.innerHTML = statChips(p);
+
+  const acc = [];
+  if(p.hof) acc.push(`<span class="acc hof">★ Hall of Fame</span>`);
+  (p.aw||[]).forEach(a => acc.push(`<span class="acc">${esc(a)}</span>`));
+  if(p.ws) acc.push(`<span class="acc">${p.ws===1?'World Series champ':p.ws+'× World Series'}</span>`);
+  if(p.pk) acc.push(`<span class="acc">Peak ${war(p.pk)} WAR${p.pky?' ('+esc(p.pky)+')':''}</span>`);
+  accolades.innerHTML = acc.slice(0,7).join('');
+
+  card.classList.toggle('forced', !!c.forced);
+}
+
+/* ============================================================
+   RANDOM ROLL — slot-machine spin, lands on the forced player
+   ============================================================ */
+let rollTimer = null, lastRollNonce = null;
+function runRoll(r){
+  if(!r) return;
+  const pool = (r.pool||[]).map(player).filter(Boolean);
+  const finalP = player(r.finalId);
+  rollKicker.textContent = `Missed It — Random Draw from ${stateName(r.st).toUpperCase()}`;
+  roll.classList.remove('landed');
+  roll.classList.add('spinning');
+  rollIdx.textContent = '';
+  rollSub.textContent = 'Rolling…';
+
+  clearInterval(rollTimer);
+  if(!pool.length || !finalP){
+    if(finalP){ land(finalP, r); }
+    return;
+  }
+  let i = 0, elapsed = 0, gap = 60;
+  const spin = () => {
+    rollName.textContent = pool[i % pool.length].n;
+    i++;
+    elapsed += gap;
+    tone(1200 + (i%5)*90, .03, .07, 'sine');
+    if(elapsed > 1500) gap = Math.min(300, gap * 1.28);   // slow to a stop
+    if(elapsed > 3000){ land(finalP, r); return; }
+    rollTimer = setTimeout(spin, gap);
+  };
+  spin();
+}
+function land(p, r){
+  clearInterval(rollTimer);
+  roll.classList.remove('spinning');
+  roll.classList.add('landed');
+  rollName.textContent = p.n;
+  rollSub.textContent = `${p.p} • ${war(p.w)} career WAR`;
+  rollIdx.textContent = r && r.idx ? `#${r.idx} of ${r.of} born in ${stateName(r.st)}` : '';
+  tone(660, .12, .2); setTimeout(()=>tone(990,.28,.22), 130);
+}
+
+/* ============================================================
+   LINEUP BOARD
+   ============================================================ */
+let prevFilled = {};
+function renderBoard(s){
+  const lu = s.lineup || {};
+  let total = 0, html = '';
+  for(const slot of SLOTS){
+    const e = lu[slot];
+    const p = e ? player(e.id) : null;
+    if(p) total += p.w;
+    const isNew = p && !prevFilled[slot];
+    html += `<div class="slot ${p?'filled':''} ${isNew?'justAdded':''}">
+      <div class="pos">${slot}</div>
+      <div class="who">${
+        p ? `<div class="nm">${esc(nameOf(p, e))}</div>
+             <div class="sub">${esc(e.st||p._st)} — ${esc(stateName(e.st||p._st))}${e.forced?' <span class="forced">🎲 FORCED</span>':''}</div>`
+          : `<div class="empty">open</div>`
+      }</div>
+      <div class="w">${p ? war(p.w) : '—'}</div>
+    </div>`;
+  }
+  boardBody.innerHTML = html;
+  prevFilled = {};
+  for(const slot of SLOTS) if(lu[slot]) prevFilled[slot] = 1;
+  boardTeam.textContent = s.team || 'The Lineup';
+  boardTotal.textContent = war(total);
+  return total;
+}
+
+function renderStrip(s){
+  const used = s.statesUsed || [];
+  strip.innerHTML = `<span class="lbl">States Visited</span>` +
+    used.map(u => `<span class="stPill ${u.ok?'':'miss'}">${esc(u.st)}</span>`).join('');
+}
+
+/* ============================================================
+   FINAL / BEST TEAM
+   ============================================================ */
+function grade(total){
+  if(total >= 500) return 'All-Time Juggernaut';
+  if(total >= 400) return 'Cooperstown Heavy';
+  if(total >= 300) return 'Legit World Series Team';
+  if(total >= 220) return 'Playoff Team';
+  if(total >= 150) return 'Respectable Ballclub';
+  if(total >= 90)  return 'Fringe .500 Squad';
+  if(total >= 40)  return 'Rebuilding';
+  return 'Triple-A At Best';
+}
+
+function renderFinal(s){
+  const lu = s.lineup || {};
+  let mine = 0;
+  for(const slot of SLOTS){ const p = lu[slot] && player(lu[slot].id); if(p) mine += p.w; }
+  finalTeam.textContent = s.team || 'The Lineup';
+  finalBigNum.textContent = war(mine);
+  finalGrade.textContent = grade(mine);
+
+  const best = (s.results && s.results.best) || null;
+  final.classList.toggle('withBest', !!best);
+  if(!best) return;
+
+  let bestTotal = 0, rows = '';
+  for(const slot of SLOTS){
+    const mp = lu[slot] && player(lu[slot].id);
+    const be = best[slot];
+    const bp = be ? player(be.id) : null;
+    if(bp) bestTotal += bp.w;
+    const same = mp && bp && mp.id === bp.id;
+    rows += `<div class="cmpRow ${same?'same':''}">
+      <div class="pos">${slot}</div>
+      <div class="nm">${mp ? esc(nameOf(mp, lu[slot]))+` <span class="st">${esc(lu[slot].st)}</span>` : '<span class="empty">—</span>'}</div>
+      <div class="w mine">${mp ? war(mp.w) : '—'}</div>
+      <div class="nm bestn">${bp ? esc(bp.n)+` <span class="st">${esc(be.st)}</span>` : '<span class="empty">none available</span>'}</div>
+      <div class="w best">${bp ? war(bp.w) : '—'}</div>
+    </div>`;
+  }
+  cmpBody.innerHTML = rows;
+  cmpMine.textContent = war(mine);
+  cmpBest.textContent = war(bestTotal);
+  const gap = bestTotal - mine;
+  leftTable.innerHTML = gap > 0.05
+    ? `They left <b>${war(gap)} WAR</b> on the table`
+    : `They nailed it — <b>best possible team</b>`;
+}
+
+/* ============================================================
+   APPLY STATE
+   ============================================================ */
+function applyState(s, catchUp){
+  if(!s) return;
+  const show = Object.assign({}, s.show || {});
+  /* The final card covers the middle of the frame, so the round graphics get
+     out of the way on their own rather than showing through it. */
+  if(show.final){ show.banner = false; show.card = false; show.roll = false; show.strip = false; }
+
+  applyTimer(s.timer, catchUp);
+  roundTag.textContent = s.round ? `Round ${s.round} of 9` : '';
+  roundTag.style.display = s.round ? '' : 'none';
+  timerWrap.classList.toggle('show', !!show.timer);
+
+  /* banner */
+  const b = s.banner || {};
+  if(b.st){
+    bannerState.textContent = stateName(b.st).toUpperCase();
+    bannerState.style.fontSize = stateName(b.st).length > 12 ? '82px' : '112px';
+    bannerKicker.textContent = b.ok === null || b.ok === undefined ? 'Birthplace State' : 'Where They Landed';
+    if(b.ok === true){ verdict.textContent = 'Got It'; verdict.className = 'bebas good on'; }
+    else if(b.ok === false){ verdict.textContent = 'Missed It'; verdict.className = 'bebas bad on'; }
+    else { verdict.className = 'bebas'; }
+  }
+  banner.classList.toggle('show', !!show.banner && !!b.st);
+
+  /* roll (fires once per nonce) */
+  const r = s.roll || {};
+  roll.classList.toggle('show', !!show.roll);
+  if(show.roll && r.nonce != null && r.nonce !== lastRollNonce){
+    lastRollNonce = r.nonce;
+    runRoll(r);
+  }
+
+  /* card */
+  if(s.card && s.card.id) renderCard(s.card);
+  card.classList.toggle('show', !!show.card && !!(s.card && s.card.id));
+
+  /* board + strip */
+  renderBoard(s);
+  board.classList.toggle('show', !!show.lineup);
+  renderStrip(s);
+  strip.classList.toggle('show', !!show.strip);
+
+  /* final */
+  renderFinal(s);
+  final.classList.toggle('show', !!show.final);
+}
+
+/* ============================================================
+   ntfy.sh live sync — SSE + watchdog + polling safety net.
+   Some networks silently buffer long-lived streams, so a low-rate
+   poll runs alongside and a watchdog force-reconnects on silence.
+   ============================================================ */
+let es = null, lastMsgAt = Date.now(), sincePoll = Math.floor(Date.now()/1000);
+
+function handleEnvelope(env){
+  lastMsgAt = Date.now();
+  if(env && env.message){
+    try{ applyState(JSON.parse(env.message)); }catch(e){}
+  }
+}
+function connect(){
+  if(!TOPIC) return;
+  if(es) es.close();
+  es = new EventSource(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/sse`);
+  es.onmessage = ev => { try{ handleEnvelope(JSON.parse(ev.data)); }catch(e){} };
+  es.onerror = () => {};
+}
+connect();
+
+/* ntfy sends a keepalive every 45s, so silence only means trouble after we've
+   missed two of them. A tighter threshold reconnects constantly for no reason
+   and burns into the request rate limit. */
+setInterval(() => {
+  if(Date.now() - lastMsgAt > 95000){ connect(); lastMsgAt = Date.now(); }
+}, 10000);
+
+async function pollOnce(){
+  if(!TOPIC) return;
+  const from = sincePoll;
+  sincePoll = Math.floor(Date.now()/1000);
+  try{
+    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=${from}`);
+    const text = await res.text();
+    text.split('\n').filter(Boolean).forEach(line => {
+      try{ handleEnvelope(JSON.parse(line)); }catch(e){}
+    });
+  }catch(e){}
+}
+/* Safety net only — SSE is the fast path. ntfy replenishes the anonymous
+   request budget about once every 5s, so polling faster than this slowly
+   starves the whole page into 429s over a long show. */
+setInterval(pollOnce, 12000);
+
+/* Pull the last known state on load so a refreshed OBS source
+   comes back exactly where the show is, not blank. */
+(async () => {
+  if(!TOPIC) return;
+  try{
+    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=6h`);
+    const lines = (await res.text()).split('\n').filter(Boolean);
+    if(lines.length){
+      const last = JSON.parse(lines[lines.length-1]);
+      if(last && last.message){
+        const st = JSON.parse(last.message);
+        st.roll = st.roll || {};
+        lastRollNonce = st.roll.nonce;     // don't replay an old spin on reload
+        applyState(st, true);
+      }
+    }
+  }catch(e){}
+})();
+
+/* arm audio */
+window.addEventListener('load', () => { audio(); });
+</script>
+</body>
+</html>

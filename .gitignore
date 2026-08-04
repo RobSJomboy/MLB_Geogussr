@@ -1,0 +1,8 @@
+build/war_daily_bat.txt
+build/war_daily_pitch.txt
+build/people.json
+build/selected.json
+build/stats.json
+build/fielding.json
+build/awards.json
+.DS_Store

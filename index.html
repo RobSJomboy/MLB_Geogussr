@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talkin' Baseball — Geoguessr Lineup Challenge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=DM+Mono&display=swap');
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    font-family:'DM Sans',-apple-system,Arial,sans-serif;
+    background:#0d1f2d; color:#eef4fa;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;
+  }
+  .wrap{ max-width:560px; width:100%; }
+  h1{ font-family:'Bebas Neue',sans-serif; font-size:52px; line-height:.98; letter-spacing:1px; }
+  h1 span{ color:#fbcc7a; display:block; }
+  p.sub{ color:#8fabc4; font-size:15px; margin:10px 0 26px; line-height:1.6; }
+  a.card{
+    display:block; text-decoration:none; color:inherit;
+    background:#11273a; border:1px solid #22415c; border-left:6px solid #fbcc7a;
+    border-radius:10px; padding:16px 20px; margin-bottom:12px;
+    transition:background 140ms ease, transform 80ms ease;
+  }
+  a.card:hover{ background:#16324a; transform:translateX(2px); }
+  a.card .t{ font-family:'Bebas Neue',sans-serif; font-size:27px; letter-spacing:1px; }
+  a.card .d{ color:#8fabc4; font-size:13px; margin-top:2px; line-height:1.5; }
+  .note{
+    font-size:12px; color:#8fabc4; line-height:1.7; margin-top:20px;
+    border-top:1px solid #22415c; padding-top:16px;
+  }
+  code{ font-family:'DM Mono',monospace; background:#0b1a28; padding:1px 6px; border-radius:4px; color:#fbcc7a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Geoguessr<span>Lineup Challenge</span></h1>
+  <p class="sub">Three minutes on the map. Guess the state, take a player born there, build a traditional NL lineup — then add up the WAR and see how the team fares.</p>
+
+  <a class="card" href="control.html">
+    <div class="t">Control →</div>
+    <div class="d">Host panel. Timer, state picker, player search with stats and bios, random draws, lineup board, final results.</div>
+  </a>
+  <a class="card" href="display.html">
+    <div class="t">Display →</div>
+    <div class="d">The OBS overlay. Transparent 1920×1080. Add <code>?topic=your-topic</code> — or just hit “Copy Display URL” on the control page.</div>
+  </a>
+
+  <div class="note">
+    <b>Setup:</b> open Control, type any topic name (add a random tail so nobody else stumbles into it), hit Connect, then Copy Display URL and paste that into an OBS Browser Source at 1920×1080.
+    <br><br>
+    Player pool: 6,278 players across 50 states, DC, Puerto Rico, the U.S. Virgin Islands and Guam. Career WAR from Baseball Reference; bios, stats and awards from MLB.
+  </div>
+</div>
+</body>
+</html>
