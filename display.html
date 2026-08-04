@@ -849,7 +849,9 @@ function fitBanner(){
   const body = document.getElementById('bannerBody');
   let size = 66;
   bannerState.style.fontSize = size + 'px';
-  for(let i = 0; i < 14 && body.getBoundingClientRect().width > 600; i++){
+  /* offsetWidth, not getBoundingClientRect — the verdict stamp animates with a
+     scale transform and we want the untransformed layout width */
+  for(let i = 0; i < 14 && body.offsetWidth > 600; i++){
     size -= 3;
     bannerState.style.fontSize = size + 'px';
   }
@@ -909,11 +911,26 @@ function applyState(s, catchUp){
   const b = s.banner || {};
   if(b.st){
     bannerState.textContent = stateName(b.st).toUpperCase();
+    bannerKicker.textContent = 'Where They Landed';
+    const called = b.ok === true || b.ok === false;
+    if(called){
+      verdict.textContent = b.ok ? 'Got It' : 'Missed It';
+      verdict.className = 'bebas ' + (b.ok ? 'good' : 'bad');
+      if(verdict.style.display === 'none'){
+        /* it was taking up no room; give the browser a frame at the small
+           scale so the stamp actually pops in rather than just appearing */
+        verdict.style.display = '';
+        requestAnimationFrame(() => requestAnimationFrame(() => verdict.classList.add('on')));
+      } else {
+        verdict.classList.add('on');
+      }
+    } else {
+      /* before the call there's no stamp, so it shouldn't reserve width either
+         — otherwise the banner carries an empty tail waiting for it */
+      verdict.className = 'bebas';
+      verdict.style.display = 'none';
+    }
     fitBanner();
-    bannerKicker.textContent = b.ok === null || b.ok === undefined ? 'Birthplace State' : 'Where They Landed';
-    if(b.ok === true){ verdict.textContent = 'Got It'; verdict.className = 'bebas good on'; }
-    else if(b.ok === false){ verdict.textContent = 'Missed It'; verdict.className = 'bebas bad on'; }
-    else { verdict.className = 'bebas'; }
   }
   banner.classList.toggle('show', !!show.banner && !!b.st);
 

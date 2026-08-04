@@ -37,11 +37,14 @@ would be meaningless. Push to GitHub and turn on Pages (Settings → Pages → d
 
 ## Running a round
 
-1. **START** the timer — it pops up on the overlay and counts down. `Space` starts/pauses,
-   `R` resets, **+30s** if you're feeling generous.
-2. When they call it, click the state in the grid, then either
-   **✅ GOT IT** (they choose) or **❌ MISSED IT** (the wheel chooses). Either one puts the
-   state and the verdict on screen right away.
+1. **START** the timer — it pops up on the overlay and counts down, and last round's
+   state banner comes down with it. `Space` starts/pauses, `R` resets, **+30s** if
+   you're feeling generous.
+2. When they call it, **click the state in the grid**. That's what puts
+   *WHERE THEY LANDED* on screen — and it eases the timer off at the same time,
+   resetting it to full for the next round. Then either **✅ GOT IT** (they choose)
+   or **❌ MISSED IT** (the wheel chooses), which stamps the verdict onto the banner
+   that's already up.
 3. *Got it:* search the state's players — the list is ranked by WAR, with position
    eligibility and career span. **Clicking a player puts his card straight on air**,
    so there's no second click between calling the name and showing the guy.
@@ -59,10 +62,11 @@ wheel picks from that state's top 25 by WAR, the overlay explains why
 ("Right State, Wrong Player"), and the pick is marked forced. The state banner
 still reads **GOT IT**, because they did get the state.
 
-**The timer gets out of the way on its own.** Calling the state — either verdict
-button — eases the timer up off the frame and resets it to full, so it's ready for
-the next round without you touching it. It holds its last reading while it goes,
-so the reset never flashes on screen.
+**The timer and the state banner trade places.** START brings the clock in and
+clears the old banner; clicking the state eases the clock off (resetting it to
+full, ready for the next round) and brings the banner in. You never have to hide
+or reset either one by hand. The clock holds its last reading on the way out, so
+the reset doesn't flash on screen.
 
 Little things that matter on air:
 

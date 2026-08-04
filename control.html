@@ -697,6 +697,9 @@ $('startBtn').addEventListener('click', () => {
   tickBase = performance.now();
   state.timer.running = true;
   state.show.timer = true;
+  /* new round on the clock — last round's state banner comes down */
+  state.show.banner = false;
+  state.banner = { st:'', ok:null };
   pushTimer();
 });
 $('pauseBtn').addEventListener('click', () => {
@@ -763,6 +766,16 @@ $('resetGameBtn').addEventListener('click', () => {
 /* ============================================================
    STATE PICKER
    ============================================================ */
+/* The guessing is over the moment the state is called, so walk the timer off
+   and put it back to full — ready for the next round without another click. */
+function retireTimer(){
+  state.timer.running = false;
+  state.timer.remaining = state.timer.dur;
+  state.timer.nonce++;
+  tickBase = performance.now();
+  state.show.timer = false;
+}
+
 function buildStateGrid(){
   $('stateGrid').innerHTML = STATE_LIST.map(ab =>
     `<div class="stBtn" data-st="${ab}" title="${esc(sName(ab))}">${ab}<span class="c">${(DATA.states[ab]||[]).length}</span></div>`
@@ -777,7 +790,15 @@ function pickState(ab){
   $('pickBlock').style.display = 'none';
   $('rollBlock').style.display = 'none';
   $('playerSearch').value = '';
-  persist(); renderAll();
+  /* the state goes on screen the moment it's clicked — the verdict stamp comes
+     later, when you call it. Picking the state also ends the guessing, so the
+     timer walks off and resets, ready for the next round. */
+  state.banner = { st: ab, ok: null };
+  state.show.banner = true;
+  state.show.card = false;
+  state.show.roll = false;
+  retireTimer();
+  publish();
 }
 $('stateSearch').addEventListener('input', () => {
   const q = $('stateSearch').value.trim().toLowerCase();
@@ -790,23 +811,12 @@ $('stateSearch').addEventListener('keydown', e => { if(e.key==='Enter') $('state
 /* ============================================================
    VERDICT
    ============================================================ */
-/* The guessing is over the moment the state is called, so walk the timer off
-   and put it back to full — ready for the next round without another click. */
-function retireTimer(){
-  state.timer.running = false;
-  state.timer.remaining = state.timer.dur;
-  state.timer.nonce++;
-  tickBase = performance.now();
-  state.show.timer = false;
-}
-
 $('gotItBtn').addEventListener('click', () => {
   ui.verdict = true; ui.pickId = null; ui.forced = false; ui.slot = '';
   state.banner = { st: ui.st, ok: true };
   state.show.banner = true;
   state.show.roll = false;
   state.show.card = false;
-  retireTimer();
   $('pickBlock').style.display = 'block';
   $('rollBlock').style.display = 'none';
   renderPlayerList();
@@ -818,7 +828,6 @@ $('missedBtn').addEventListener('click', () => {
   state.banner = { st: ui.st, ok: false };
   state.show.banner = true;
   state.show.card = false;
-  retireTimer();
   $('pickBlock').style.display = 'none';
   $('rollBlock').style.display = 'block';
   publish();
@@ -1052,7 +1061,7 @@ $('lockBtn').addEventListener('click', () => {
   state.round = Math.min(9, Object.keys(state.lineup).length + 1);
   state.show.lineup = true;
   state.show.roll = false;
-  state.show.card = false;        /* board slides in where the card was */
+  state.show.card = false;        /* he's on the board now, so the card eases off */
   state.results.best = null;          // lineup changed, best team is stale
   ui = { st:'', verdict:null, pickId:null, forced:false, slot:'', nm:'' };
   state.card = { id:null, st:'', slot:'', forced:false };
