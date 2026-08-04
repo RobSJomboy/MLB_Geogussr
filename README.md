@@ -50,6 +50,11 @@ would be meaningless. Push to GitHub and turn on Pages (Settings → Pages → d
    "here's who this guy is" copy for whoever's playing.
 5. Assign a spot and **LOCK IN**. The board updates and the running WAR total goes up.
 
+The card and the lineup board share one spot on screen, so locking a player in
+reads as a swap: the card eases out to the left while the board slides in from
+the right in its place. Next reveal, the board steps back off and the card comes
+in the same way. Only one of them is ever on stage.
+
 Little things that matter on air:
 
 - The **name on screen** is editable. MLB's records carry legal suffixes, so Nolan Ryan is
@@ -106,19 +111,35 @@ cd build && python3 fetch_people.py && python3 build_pools.py && python3 fetch_s
 `fetch_people.py` needs `war_daily_bat.txt` and `war_daily_pitch.txt` from
 `https://www.baseball-reference.com/data/` in the same folder first.
 
-## A note on ntfy limits
+## Staying under the ntfy limit
 
-The free ntfy.sh tier rate-limits by IP, and hitting it mid-show freezes the overlay. This
-is built to stay well under:
+The free ntfy.sh tier rate-limits by IP and a frozen overlay mid-show is not an
+option, so the traffic is engineered down to almost nothing:
 
-- The control page only sends when something the display is **actually drawing** would
-  change — browsing players or fiddling with slots before the reveal costs nothing.
-- The timer is **not** resynced on a loop. The overlay counts down on its own, and every
-  message carries an absolute deadline so a reloaded OBS source still lands on the right time.
-- The overlay leans on SSE and only polls as a slow safety net.
+- **The preview costs zero.** The preview iframe is driven over a
+  `BroadcastChannel`, not the topic — instant, free, and it doesn't count as a
+  second subscriber. OBS runs its own browser, so it's the only real subscriber.
+- **The overlay doesn't poll.** One long-lived SSE connection, and that's it.
+  ntfy sends a keepalive every 45s, so the overlay only spends a request when
+  that heartbeat actually goes missing (past 60s), or when a backgrounded OBS
+  source comes back. In normal operation: **one request at startup, then none.**
+- **The control page only sends when the overlay's picture would change.**
+  Browsing players, fiddling with slots, or selecting someone before the reveal
+  costs nothing. Bursts of clicks coalesce into one message.
+- **The timer is never resynced on a loop.** The overlay counts down on its own,
+  and every message carries an absolute deadline so a reloaded OBS source still
+  lands on the right time.
 
-A full nine-round game runs about 45–60 messages. If you do hit the limit, the control page
-says so in the bottom bar (it won't fail silently) — wait a minute, or switch to a fresh
-topic name. **Force Resync** pushes the current state again if the overlay ever looks stale.
+Measured on a full nine-round game: **the overlay makes 1 request, the control
+page around 45–60.** The anonymous budget replenishes roughly one request every
+five seconds, so there's a wide margin.
 
-Topics are public to anyone who knows the name, which is why the random tail matters.
+If it somehow is hit anyway (a shared office IP, say), nothing is lost and
+nothing freezes: the message goes back in the queue and retries with backoff —
+2s, 4s, 8s — always sending the newest state, and the bottom bar tells you what's
+happening. The preview keeps working the whole time. The `ntfy: N sent` counter
+next to it shows exactly what you've spent, and **Force Resync** pushes the
+current state again if the overlay ever looks stale.
+
+Topics are public to anyone who knows the name, which is why the random tail
+matters.

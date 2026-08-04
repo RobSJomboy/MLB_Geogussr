@@ -23,6 +23,15 @@
     --green:#3fbf6f;
     --red:#e2453c;
     --ink:#f3f7fb;
+
+    /* one stage the player card and the lineup board take turns on */
+    --panelX:118px;
+    --panelY:404px;
+    --panelW:1160px;
+    --panelH:340px;
+    --enterX:150px;    /* arrives from the right */
+    --exitX:-150px;    /* leaves to the left */
+    --swap:cubic-bezier(.22,.92,.24,1);
   }
 
   .bebas{ font-family:'Bebas Neue', Impact, sans-serif; letter-spacing:1px; }
@@ -120,12 +129,14 @@
 
   /* ==================== PLAYER CARD ==================== */
   #card{
-    position:absolute; left:118px; top:404px; width:1160px;
-    opacity:0; transform:translateY(70px) scale(.97);
-    transition:transform 640ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+    position:absolute; left:var(--panelX); top:var(--panelY); width:var(--panelW);
+    opacity:0; transform:translateX(var(--enterX));
+    transition:transform 700ms var(--swap), opacity 520ms ease;
   }
-  #card.show{ opacity:1; transform:translateY(0) scale(1); }
+  #card.show{ opacity:1; transform:translateX(0); }
+  #card.leaving{ opacity:0; transform:translateX(var(--exitX)); }
   #cardInner{
+    height:var(--panelH);
     background:linear-gradient(135deg, var(--navy2) 0%, var(--navy) 62%);
     border:4px solid var(--gold);
     border-radius:22px;
@@ -133,11 +144,11 @@
     display:flex; overflow:hidden;
   }
   #shotWrap{
-    flex:0 0 300px; height:340px; position:relative;
+    flex:0 0 300px; height:100%; position:relative;
     background:linear-gradient(180deg,#1c3b55,#0d1f2d);
     border-right:4px solid var(--gold);
   }
-  #shot{ width:300px; height:340px; object-fit:cover; object-position:top center; display:block; }
+  #shot{ width:300px; height:100%; object-fit:cover; object-position:top center; display:block; }
   #monogram{
     position:absolute; inset:0; display:none;
     align-items:center; justify-content:center;
@@ -208,13 +219,15 @@
 
   /* ==================== RANDOM ROLL ==================== */
   #roll{
-    position:absolute; left:118px; top:404px; width:1160px; height:340px;
-    opacity:0; transform:scale(.95);
-    transition:transform 400ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
+    position:absolute; left:var(--panelX); top:var(--panelY);
+    width:var(--panelW); height:var(--panelH);
+    opacity:0; transform:translateX(var(--enterX));
+    transition:transform 700ms var(--swap), opacity 520ms ease;
   }
-  #roll.show{ opacity:1; transform:scale(1); }
+  #roll.show{ opacity:1; transform:translateX(0); }
+  #roll.leaving{ opacity:0; transform:translateX(var(--exitX)); }
   #rollInner{
-    height:340px;
+    height:var(--panelH);
     background:linear-gradient(135deg,#3a1414 0%, var(--navy) 70%);
     border:4px solid var(--red);
     border-radius:22px;
@@ -242,63 +255,83 @@
   #roll.landed #rollName{ color:var(--gold); }
   @keyframes landPop{ 0%{transform:scale(1);} 40%{transform:scale(1.045);} 100%{transform:scale(1);} }
 
-  /* ==================== LINEUP BOARD ==================== */
+  /* ==================== LINEUP BOARD ====================
+     Shares the player card's exact footprint (--panelW x --panelH at the same
+     spot) so the two swap in place: whatever is arriving slides in from the
+     right, whatever is leaving slides out to the left. */
   #board{
-    position:absolute; right:56px; top:120px; width:496px;
-    opacity:0; transform:translateX(110px);
-    transition:transform 640ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+    position:absolute; left:var(--panelX); top:var(--panelY);
+    width:var(--panelW); height:var(--panelH);
+    opacity:0; transform:translateX(var(--enterX));
+    transition:transform 700ms var(--swap), opacity 520ms ease;
   }
   #board.show{ opacity:1; transform:translateX(0); }
-  #boardHead{
-    background:var(--gold); color:var(--navy);
-    border-radius:14px 14px 0 0; padding:9px 20px 11px;
-    text-align:center;
+  #board.leaving{ opacity:0; transform:translateX(var(--exitX)); }
+  #boardInner{
+    height:var(--panelH);
+    background:linear-gradient(135deg, var(--navy2) 0%, var(--navy) 62%);
+    border:4px solid var(--gold);
+    border-radius:22px;
+    box-shadow:0 22px 56px rgba(0,0,0,.6);
+    overflow:hidden;
+    display:flex; flex-direction:column;
   }
-  #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:46px; line-height:.95; }
-  #boardSub{ font-size:15px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.75; }
+  #boardHead{
+    flex:0 0 auto;
+    background:var(--gold); color:var(--navy);
+    padding:6px 26px 8px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+  }
+  #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:44px; line-height:.95; }
+  #boardSub{ font-size:13px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.7; margin-top:-4px; }
+  #boardTotalWrap{ text-align:right; display:flex; align-items:baseline; gap:10px; }
+  #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:56px; line-height:.85; }
+  #boardTotalWrap .lbl{ font-size:15px; font-weight:700; letter-spacing:3px; text-transform:uppercase; opacity:.75; }
+
+  /* two columns, filled top-to-bottom: C/1B/2B/3B/SS then LF/CF/RF/P */
   #boardBody{
-    background:linear-gradient(180deg, rgba(19,44,64,.97), rgba(13,31,45,.97));
-    border:3px solid var(--gold); border-top:none;
-    padding:9px;
+    flex:1 1 auto;
+    display:grid;
+    grid-auto-flow:column;
+    grid-template-rows:repeat(5, 1fr);
+    grid-template-columns:repeat(2, 1fr);
+    gap:5px 12px;
+    padding:9px 14px 11px;
   }
   .slot{
-    display:flex; align-items:center; gap:11px;
-    padding:6px 9px; border-radius:9px; margin-bottom:5px;
+    display:flex; align-items:center; gap:10px;
+    padding:2px 10px; border-radius:8px;
     background:rgba(255,255,255,.05);
     border-left:5px solid rgba(251,204,122,.28);
-    min-height:52px;
+    min-width:0;
     transition:background 300ms ease, border-color 300ms ease;
   }
-  .slot:last-child{ margin-bottom:0; }
   .slot.filled{ background:rgba(251,204,122,.13); border-left-color:var(--gold); }
-  .slot.justAdded{ animation:slotIn 700ms cubic-bezier(.2,1.4,.3,1); }
-  @keyframes slotIn{ 0%{ transform:translateX(46px); background:rgba(251,204,122,.5);} 100%{ transform:translateX(0);} }
+  .slot.justAdded{ animation:slotIn 760ms cubic-bezier(.2,1.35,.3,1); }
+  @keyframes slotIn{
+    0%{ transform:translateX(38px); background:rgba(251,204,122,.55); }
+    100%{ transform:translateX(0); }
+  }
   .slot .pos{
-    flex:0 0 58px; font-family:'Bebas Neue',sans-serif; font-size:33px;
+    flex:0 0 50px; font-family:'Bebas Neue',sans-serif; font-size:30px;
     color:var(--gold); text-align:center; letter-spacing:1px;
   }
   .slot .who{ flex:1; min-width:0; }
   .slot .nm{
-    font-size:25px; font-weight:700; color:#fff; line-height:1.05;
+    font-size:22px; font-weight:700; color:#fff; line-height:1.05;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .slot .sub{ font-size:15px; color:rgba(251,204,122,.85); letter-spacing:1px; text-transform:uppercase; }
+  .slot .sub{
+    font-size:12px; color:rgba(251,204,122,.85); letter-spacing:1px;
+    text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
   .slot .sub .forced{ color:#ff9a92; font-weight:700; }
-  .slot .empty{ font-size:22px; color:rgba(255,255,255,.28); font-style:italic; }
+  .slot .empty{ font-size:19px; color:rgba(255,255,255,.28); font-style:italic; }
   .slot .w{
-    flex:0 0 auto; font-family:'Bebas Neue',sans-serif; font-size:34px; color:#fff;
+    flex:0 0 auto; font-family:'Bebas Neue',sans-serif; font-size:30px; color:#fff;
     font-variant-numeric:tabular-nums;
   }
   .slot.filled .w{ color:var(--gold); }
-
-  #boardFoot{
-    background:var(--gold); color:var(--navy);
-    border-radius:0 0 14px 14px; padding:8px 20px 11px;
-    display:flex; align-items:center; justify-content:space-between;
-    box-shadow:0 14px 34px rgba(0,0,0,.45);
-  }
-  #boardFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
-  #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:58px; line-height:.9; }
 
   /* ==================== FINAL / BEST TEAM ==================== */
   #final{
@@ -458,14 +491,18 @@
 
   <!-- LINEUP BOARD -->
   <div id="board">
-    <div id="boardHead">
-      <div id="boardTeam" class="bebas">The Lineup</div>
-      <div id="boardSub">Geoguessr Lineup Challenge</div>
-    </div>
-    <div id="boardBody"></div>
-    <div id="boardFoot">
-      <div class="lbl">Total WAR</div>
-      <div id="boardTotal" class="bebas">0.0</div>
+    <div id="boardInner">
+      <div id="boardHead">
+        <div>
+          <div id="boardTeam" class="bebas">The Lineup</div>
+          <div id="boardSub">Geoguessr Lineup Challenge</div>
+        </div>
+        <div id="boardTotalWrap">
+          <span class="lbl">Total WAR</span>
+          <span id="boardTotal" class="bebas">0.0</span>
+        </div>
+      </div>
+      <div id="boardBody"></div>
     </div>
   </div>
 
@@ -816,6 +853,37 @@ function renderFinal(s){
 }
 
 /* ============================================================
+   STAGE — card / roll / board share one footprint, so showing a new
+   one has to walk the old one off to the left first.
+   ============================================================ */
+const PANELS = { card, roll, board };
+let stageNow = '';
+function setStage(next){
+  if(next === stageNow) return;
+  const prev = stageNow;
+  stageNow = next;
+
+  if(prev && PANELS[prev]){
+    const el = PANELS[prev];
+    el.classList.remove('show');
+    el.classList.add('leaving');
+    /* park it back at the entry side once it's off screen, ready to come
+       in from the right next time */
+    setTimeout(() => {
+      if(stageNow !== prev) el.classList.remove('leaving');
+    }, 720);
+  }
+  if(next && PANELS[next]){
+    const el = PANELS[next];
+    el.classList.remove('leaving');
+    /* a frame at the entry position, then transition in */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if(stageNow === next) el.classList.add('show');
+    }));
+  }
+}
+
+/* ============================================================
    APPLY STATE
    ============================================================ */
 function applyState(s, catchUp){
@@ -844,19 +912,22 @@ function applyState(s, catchUp){
 
   /* roll (fires once per nonce) */
   const r = s.roll || {};
-  roll.classList.toggle('show', !!show.roll);
   if(show.roll && r.nonce != null && r.nonce !== lastRollNonce){
     lastRollNonce = r.nonce;
     runRoll(r);
   }
 
-  /* card */
+  /* ---- the shared stage: card, roll and board take turns in one spot ----
+     Whichever panel is arriving slides in from the right; the one it replaces
+     slides out to the left instead of just disappearing. */
   if(s.card && s.card.id) renderCard(s.card);
-  card.classList.toggle('show', !!show.card && !!(s.card && s.card.id));
-
-  /* board + strip */
   renderBoard(s);
-  board.classList.toggle('show', !!show.lineup);
+  const wantCard = !!show.card && !!(s.card && s.card.id);
+  const wantRoll = !!show.roll;
+  /* one at a time, in priority order — a roll or a reveal outranks the board */
+  const stage = wantRoll ? 'roll' : (wantCard ? 'card' : (show.lineup ? 'board' : ''));
+  setStage(stage);
+
   renderStrip(s);
   strip.classList.toggle('show', !!show.strip);
 
@@ -866,69 +937,104 @@ function applyState(s, catchUp){
 }
 
 /* ============================================================
-   ntfy.sh live sync — SSE + watchdog + polling safety net.
-   Some networks silently buffer long-lived streams, so a low-rate
-   poll runs alongside and a watchdog force-reconnects on silence.
+   SYNC
+
+   Two ways in, and the cheap one is preferred:
+
+   * BroadcastChannel — free, instant, same browser. This is how the control
+     page's preview iframe is driven, so the preview costs zero ntfy requests.
+   * ntfy topic — for OBS, which runs its own browser and can't hear the
+     channel. One long-lived SSE connection, and that's it: ntfy keepalives
+     arrive every 45s, so we only spend a request when that heartbeat actually
+     goes missing. No periodic polling, which is what quietly eats the
+     anonymous rate limit over a long show.
    ============================================================ */
-let es = null, lastMsgAt = Date.now(), sincePoll = Math.floor(Date.now()/1000);
+const IN_FRAME = window.parent !== window;
+let es = null, lastMsgAt = Date.now(), firstPaint = true;
+let sincePoll = Math.floor(Date.now()/1000);
+
+/* local channel — always listen, it never costs anything */
+let BC = null;
+try{
+  BC = new BroadcastChannel('geo_lineup');
+  BC.onmessage = ev => {
+    const d = ev.data;
+    if(!d || d.__req) return;
+    lastMsgAt = Date.now();
+    applyState(d, firstPaint);
+    firstPaint = false;
+  };
+}catch(e){}
 
 function handleEnvelope(env){
   lastMsgAt = Date.now();
   if(env && env.message){
-    try{ applyState(JSON.parse(env.message)); }catch(e){}
+    try{ applyState(JSON.parse(env.message), firstPaint); firstPaint = false; }catch(e){}
   }
 }
+
 function connect(){
-  if(!TOPIC) return;
+  if(!TOPIC || IN_FRAME) return;
   if(es) es.close();
   es = new EventSource(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/sse`);
   es.onmessage = ev => { try{ handleEnvelope(JSON.parse(ev.data)); }catch(e){} };
   es.onerror = () => {};
 }
-connect();
-
-/* ntfy sends a keepalive every 45s, so silence only means trouble after we've
-   missed two of them. A tighter threshold reconnects constantly for no reason
-   and burns into the request rate limit. */
-setInterval(() => {
-  if(Date.now() - lastMsgAt > 95000){ connect(); lastMsgAt = Date.now(); }
-}, 10000);
 
 async function pollOnce(){
-  if(!TOPIC) return;
+  if(!TOPIC || IN_FRAME) return;
   const from = sincePoll;
   sincePoll = Math.floor(Date.now()/1000);
   try{
     const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=${from}`);
+    if(res.status === 429) return;                 /* back off, the heartbeat check will retry */
     const text = await res.text();
     text.split('\n').filter(Boolean).forEach(line => {
       try{ handleEnvelope(JSON.parse(line)); }catch(e){}
     });
   }catch(e){}
 }
-/* Safety net only — SSE is the fast path. ntfy replenishes the anonymous
-   request budget about once every 5s, so polling faster than this slowly
-   starves the whole page into 429s over a long show. */
-setInterval(pollOnce, 12000);
 
-/* Pull the last known state on load so a refreshed OBS source
-   comes back exactly where the show is, not blank. */
-(async () => {
-  if(!TOPIC) return;
-  try{
-    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=6h`);
-    const lines = (await res.text()).split('\n').filter(Boolean);
-    if(lines.length){
-      const last = JSON.parse(lines[lines.length-1]);
-      if(last && last.message){
-        const st = JSON.parse(last.message);
-        st.roll = st.roll || {};
-        lastRollNonce = st.roll.nonce;     // don't replay an old spin on reload
-        applyState(st, true);
+if(IN_FRAME){
+  /* preview: ask the control page for the current state and then just listen */
+  try{ if(BC) BC.postMessage({__req:1}); }catch(e){}
+} else {
+  connect();
+
+  /* Heartbeat, not a timer. ntfy pings every 45s; past 60s of true silence
+     something is wrong, so spend one poll to catch up, and past 95s rebuild
+     the stream. In normal operation this costs nothing at all. */
+  setInterval(() => {
+    const quiet = Date.now() - lastMsgAt;
+    if(quiet > 95000){ connect(); lastMsgAt = Date.now(); pollOnce(); }
+    else if(quiet > 60000){ pollOnce(); }
+  }, 15000);
+
+  /* a backgrounded OBS source can have its stream suspended — catch up on return */
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && Date.now() - lastMsgAt > 20000) pollOnce();
+  });
+
+  /* Pull the last known state on load so a refreshed OBS source comes back
+     exactly where the show is, not blank. */
+  (async () => {
+    if(!TOPIC) return;
+    try{
+      const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=6h`);
+      const lines = (await res.text()).split('\n').filter(Boolean);
+      if(lines.length){
+        const last = JSON.parse(lines[lines.length-1]);
+        if(last && last.message){
+          const st = JSON.parse(last.message);
+          st.roll = st.roll || {};
+          lastRollNonce = st.roll.nonce;     /* don't replay an old spin on reload */
+          applyState(st, true);
+          firstPaint = false;
+        }
       }
-    }
-  }catch(e){}
-})();
+    }catch(e){}
+  })();
+}
 
 /* arm audio */
 window.addEventListener('load', () => { audio(); });

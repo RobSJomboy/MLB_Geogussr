@@ -429,6 +429,7 @@
   <span class="chip" id="chipStrip">States</span>
   <span class="chip" id="chipFinal">Final</span>
   <button class="red" id="hideAllBtn">Hide Everything</button>
+  <span class="hint" style="margin:0;" id="reqMeter">ntfy: 0 sent</span>
   <span class="hint" style="margin:0;" id="saveHint"></span>
 </div>
 
@@ -521,10 +522,23 @@ function restore(){
   }catch(e){}
 }
 
-/* ntfy's free tier rate-limits by IP, and a live show can't afford to hit that
-   mid-round. So: (a) never publish unless something the display is actually
-   drawing would change, (b) coalesce bursts, (c) let the display run its own
-   clock off an absolute deadline instead of resyncing it every few seconds. */
+/* ============================================================
+   TRANSPORT
+
+   ntfy's free tier rate-limits by IP, and a live show can't afford to stall on
+   it. Three things keep us clear of the ceiling:
+
+   1. We only POST when something the display is actually drawing would change,
+      and bursts of clicks coalesce into one message.
+   2. The preview iframe is driven over a BroadcastChannel instead of ntfy, so
+      it costs nothing and updates instantly. (OBS runs its own browser, so it
+      still needs the topic — that's the one real subscriber.)
+   3. If a POST ever is rate-limited it goes back in the queue and retries with
+      backoff, always sending the newest state. The overlay catches up on its
+      own instead of sitting frozen.
+   ============================================================ */
+const BC = (() => { try { return new BroadcastChannel('geo_lineup'); } catch(e){ return null; } })();
+
 function visibleSig(){
   const sh = state.show;
   return JSON.stringify([
@@ -537,35 +551,87 @@ function visibleSig(){
     sh.final ? state.results : 0
   ]);
 }
-let lastSig = null, sendTimer = null, sent = 0;
-function send(){
-  if(!TOPIC) return;
+
+let lastSig = null, sendTimer = null;
+let pending = null;          /* newest payload waiting to go out */
+let inFlight = false, backoff = 0;
+let sentCount = 0;
+
+function note(msg, bad){
+  $('saveHint').innerHTML = bad ? `<b style="color:#ff8b82">${msg}</b>` : msg;
+}
+function meter(){
+  $('reqMeter').textContent = `ntfy: ${sentCount} sent` + (pending !== null ? ' · queued' : '');
+}
+
+/* absolute deadline travels with every message, so a reloaded OBS source lands
+   on the right time even if the payload sat in a retry queue for a while */
+function stamp(){
   state.timer.endsAt = state.timer.running
-    ? Date.now() + Math.round(liveRemaining()*1000) : 0;
+    ? Date.now() + Math.round(liveRemaining() * 1000) : 0;
   state.timer.remaining = liveRemaining();
-  const body = JSON.stringify(state);
-  fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}`, {method:'POST', body})
+}
+
+function flush(){
+  if(inFlight || pending === null || !TOPIC) return;
+  inFlight = true;
+  const body = pending;
+  pending = null;
+  meter();
+  fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}`, { method:'POST', body })
     .then(res => {
-      if(res.status === 429){
-        $('saveHint').innerHTML = '<b style="color:#ff8b82">ntfy rate limit hit — display is frozen. Wait a minute or switch topic.</b>';
+      if(res.status === 429 || res.status >= 500){
+        if(pending === null) pending = body;         /* newer state wins if one arrived */
+        backoff = Math.min(30000, backoff ? Math.round(backoff * 1.8) : 2000);
+        note(`ntfy busy — retrying in ${Math.round(backoff/1000)}s (preview stays live)`, true);
       } else if(!res.ok){
-        $('saveHint').innerHTML = `<b style="color:#ff8b82">send failed (${res.status})</b>`;
+        backoff = 0;
+        note(`send failed (${res.status})`, true);
       } else {
-        sent++;
-        $('saveHint').textContent = `sent ${sent} · ${new Date().toLocaleTimeString()}`;
+        backoff = 0;
+        sentCount++;
+        note(`sent ${sentCount} · ${new Date().toLocaleTimeString()}`);
       }
     })
-    .catch(() => { $('saveHint').innerHTML = '<b style="color:#ff8b82">send failed — check the connection</b>'; });
+    .catch(() => {
+      if(pending === null) pending = body;
+      backoff = Math.min(30000, backoff ? Math.round(backoff * 1.8) : 2000);
+      note('offline — will retry', true);
+    })
+    .then(() => {
+      inFlight = false;
+      meter();
+      if(pending !== null) setTimeout(flush, backoff || 120);
+    });
 }
+
 function publish(force){
   persist();
   renderAll();
+  stamp();
+  /* the preview costs nothing, so mirror locally on every single change */
+  if(BC){ try{ BC.postMessage(state); }catch(e){} }
   if(!TOPIC) return;
   const sig = visibleSig();
-  if(!force && sig === lastSig) return;      // nothing on screen would change
+  if(!force && sig === lastSig) return;     /* nothing on screen would change */
   lastSig = sig;
   clearTimeout(sendTimer);
-  sendTimer = setTimeout(send, 140);          // coalesce a burst of clicks
+  sendTimer = setTimeout(() => {            /* coalesce a burst of clicks */
+    stamp();
+    pending = JSON.stringify(state);
+    meter();
+    flush();
+  }, 140);
+}
+
+/* a freshly loaded preview asks for the current state rather than waiting */
+if(BC){
+  BC.onmessage = e => {
+    if(e.data && e.data.__req){
+      stamp();
+      try{ BC.postMessage(state); }catch(err){}
+    }
+  };
 }
 
 /* ============================================================
@@ -960,6 +1026,7 @@ $('lockBtn').addEventListener('click', () => {
   state.round = Math.min(9, Object.keys(state.lineup).length + 1);
   state.show.lineup = true;
   state.show.roll = false;
+  state.show.card = false;        /* board slides in where the card was */
   state.results.best = null;          // lineup changed, best team is stale
   ui = { st:'', verdict:null, pickId:null, forced:false, slot:'', nm:'' };
   state.card = { id:null, st:'', slot:'', forced:false };
