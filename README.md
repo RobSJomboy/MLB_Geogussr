@@ -16,7 +16,7 @@ Two pages, same as the Trade Deadline setup — you drive `control.html` from an
 | Page | What it is |
 |---|---|
 | [`control.html`](control.html) | Host panel. Timer, state picker, player search, scouting reports, random draws, lineup board, final results. |
-| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. |
+| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. Lineup board sits on the right as a vertical column; the player card and the random-draw spin share the space on the left. |
 | [`index.html`](index.html) | Landing page with links to both. |
 | `players.js` | The data — 6,278 players. |
 
@@ -43,17 +43,26 @@ would be meaningless. Push to GitHub and turn on Pages (Settings → Pages → d
    **✅ GOT IT** (they choose) or **❌ MISSED IT** (the wheel chooses). Either one puts the
    state and the verdict on screen right away.
 3. *Got it:* search the state's players — the list is ranked by WAR, with position
-   eligibility and career span. *Missed it:* pick a draw pool and hit **🎲 ROLL** —
-   the overlay runs the slot-machine spin and lands on the guy.
+   eligibility and career span. **Clicking a player puts his card straight on air**,
+   so there's no second click between calling the name and showing the guy.
+   (*Reveal Card on Display* is still there to bring it back if you've hidden it.)
+   *Missed it:* pick a draw pool and hit **🎲 ROLL** — the overlay runs the
+   slot-machine spin and lands on the guy.
 4. Read the **scouting report** on the control page: bio, career line, accolades,
    peak season, and a link straight to his Baseball Reference page. That's your
    "here's who this guy is" copy for whoever's playing.
 5. Assign a spot and **LOCK IN**. The board updates and the running WAR total goes up.
 
-The card and the lineup board share one spot on screen, so locking a player in
-reads as a swap: the card eases out to the left while the board slides in from
-the right in its place. Next reveal, the board steps back off and the card comes
-in the same way. Only one of them is ever on stage.
+**Right state, wrong player.** If they nail the state but name someone who isn't
+from there, hit **🎲 Wrong player — draw Top 25 WAR** in the *Got it* panel. The
+wheel picks from that state's top 25 by WAR, the overlay explains why
+("Right State, Wrong Player"), and the pick is marked forced. The state banner
+still reads **GOT IT**, because they did get the state.
+
+**The timer gets out of the way on its own.** Calling the state — either verdict
+button — eases the timer up off the frame and resets it to full, so it's ready for
+the next round without you touching it. It holds its last reading while it goes,
+so the reset never flashes on screen.
 
 Little things that matter on air:
 

@@ -40,12 +40,16 @@
   /* ==================== TIMER ==================== */
   #timerWrap{
     position:absolute; left:50%; top:44px;
-    transform:translate(-50%, -220px);
+    transform:translate(-50%, -260px);
     opacity:0;
-    transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
+    /* ease-out on the way off, snappier on the way in */
+    transition:transform 760ms cubic-bezier(.32,0,.35,1), opacity 620ms cubic-bezier(.4,0,.6,1);
     display:flex; flex-direction:column; align-items:center;
   }
-  #timerWrap.show{ opacity:1; transform:translate(-50%,0); }
+  #timerWrap.show{
+    opacity:1; transform:translate(-50%,0);
+    transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 460ms ease;
+  }
 
   #timerBox{
     background:linear-gradient(180deg, var(--navy2), var(--navy));
@@ -93,32 +97,32 @@
 
   /* ==================== STATE BANNER ==================== */
   #banner{
-    position:absolute; left:118px; top:196px; max-width:1160px;
-    opacity:0; transform:translateX(-90px);
+    position:absolute; left:118px; top:186px; max-width:600px;
+    opacity:0; transform:translateX(-70px);
     transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 480ms ease;
   }
   #banner.show{ opacity:1; transform:translateX(0); }
   #bannerKicker{
     display:inline-block;
     background:var(--gold); color:var(--navy);
-    font-size:24px; font-weight:700; letter-spacing:5px; text-transform:uppercase;
-    padding:6px 20px; border-radius:6px 6px 0 0;
+    font-size:16px; font-weight:700; letter-spacing:4px; text-transform:uppercase;
+    padding:4px 14px; border-radius:5px 5px 0 0;
   }
   #bannerBody{
     display:inline-flex;
     background:linear-gradient(180deg, var(--navy2), var(--navy));
-    border-left:12px solid var(--gold);
-    border-radius:0 14px 14px 0;
+    border-left:9px solid var(--gold);
+    border-radius:0 11px 11px 0;
     box-shadow:0 18px 44px rgba(0,0,0,.55);
-    padding:16px 48px 22px 40px;
-    align-items:center; gap:34px;
+    padding:10px 26px 14px 24px;
+    align-items:center; gap:20px;
   }
   #bannerState{
-    font-size:112px; line-height:.94; color:#fff;
+    font-size:66px; line-height:.94; color:#fff; white-space:nowrap;
     text-shadow:0 5px 16px rgba(0,0,0,.5);
   }
   #verdict{
-    font-size:44px; padding:10px 30px; border-radius:12px;
+    font-size:28px; padding:6px 18px; border-radius:9px;
     color:#fff; white-space:nowrap;
     transform:rotate(-4deg) scale(.4); opacity:0;
     transition:transform 420ms cubic-bezier(.2,1.6,.4,1), opacity 300ms ease;
@@ -256,82 +260,67 @@
   @keyframes landPop{ 0%{transform:scale(1);} 40%{transform:scale(1.045);} 100%{transform:scale(1);} }
 
   /* ==================== LINEUP BOARD ====================
-     Shares the player card's exact footprint (--panelW x --panelH at the same
-     spot) so the two swap in place: whatever is arriving slides in from the
-     right, whatever is leaving slides out to the left. */
+     Lives on the right as a tall column, independent of the card stage — both
+     can be on screen at once. */
   #board{
-    position:absolute; left:var(--panelX); top:var(--panelY);
-    width:var(--panelW); height:var(--panelH);
-    opacity:0; transform:translateX(var(--enterX));
+    position:absolute; right:56px; top:120px; width:496px;
+    opacity:0; transform:translateX(130px);
     transition:transform 700ms var(--swap), opacity 520ms ease;
   }
   #board.show{ opacity:1; transform:translateX(0); }
-  #board.leaving{ opacity:0; transform:translateX(var(--exitX)); }
-  #boardInner{
-    height:var(--panelH);
-    background:linear-gradient(135deg, var(--navy2) 0%, var(--navy) 62%);
-    border:4px solid var(--gold);
-    border-radius:22px;
-    box-shadow:0 22px 56px rgba(0,0,0,.6);
-    overflow:hidden;
-    display:flex; flex-direction:column;
-  }
   #boardHead{
-    flex:0 0 auto;
     background:var(--gold); color:var(--navy);
-    padding:6px 26px 8px;
-    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    border-radius:14px 14px 0 0; padding:9px 20px 11px;
+    text-align:center;
   }
-  #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:44px; line-height:.95; }
-  #boardSub{ font-size:13px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.7; margin-top:-4px; }
-  #boardTotalWrap{ text-align:right; display:flex; align-items:baseline; gap:10px; }
-  #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:56px; line-height:.85; }
-  #boardTotalWrap .lbl{ font-size:15px; font-weight:700; letter-spacing:3px; text-transform:uppercase; opacity:.75; }
-
-  /* two columns, filled top-to-bottom: C/1B/2B/3B/SS then LF/CF/RF/P */
+  #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:46px; line-height:.95; }
+  #boardSub{ font-size:15px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.75; }
   #boardBody{
-    flex:1 1 auto;
-    display:grid;
-    grid-auto-flow:column;
-    grid-template-rows:repeat(5, 1fr);
-    grid-template-columns:repeat(2, 1fr);
-    gap:5px 12px;
-    padding:9px 14px 11px;
+    background:linear-gradient(180deg, rgba(19,44,64,.97), rgba(13,31,45,.97));
+    border:3px solid var(--gold); border-top:none;
+    padding:9px;
   }
   .slot{
-    display:flex; align-items:center; gap:10px;
-    padding:2px 10px; border-radius:8px;
+    display:flex; align-items:center; gap:11px;
+    padding:6px 9px; border-radius:9px; margin-bottom:5px;
     background:rgba(255,255,255,.05);
     border-left:5px solid rgba(251,204,122,.28);
-    min-width:0;
+    min-height:52px;
     transition:background 300ms ease, border-color 300ms ease;
   }
+  .slot:last-child{ margin-bottom:0; }
   .slot.filled{ background:rgba(251,204,122,.13); border-left-color:var(--gold); }
   .slot.justAdded{ animation:slotIn 760ms cubic-bezier(.2,1.35,.3,1); }
   @keyframes slotIn{
-    0%{ transform:translateX(38px); background:rgba(251,204,122,.55); }
+    0%{ transform:translateX(46px); background:rgba(251,204,122,.55); }
     100%{ transform:translateX(0); }
   }
   .slot .pos{
-    flex:0 0 50px; font-family:'Bebas Neue',sans-serif; font-size:30px;
+    flex:0 0 58px; font-family:'Bebas Neue',sans-serif; font-size:33px;
     color:var(--gold); text-align:center; letter-spacing:1px;
   }
   .slot .who{ flex:1; min-width:0; }
   .slot .nm{
-    font-size:22px; font-weight:700; color:#fff; line-height:1.05;
+    font-size:25px; font-weight:700; color:#fff; line-height:1.05;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .slot .sub{
-    font-size:12px; color:rgba(251,204,122,.85); letter-spacing:1px;
-    text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
+  .slot .sub{ font-size:15px; color:rgba(251,204,122,.85); letter-spacing:1px; text-transform:uppercase; }
   .slot .sub .forced{ color:#ff9a92; font-weight:700; }
-  .slot .empty{ font-size:19px; color:rgba(255,255,255,.28); font-style:italic; }
+  .slot .empty{ font-size:22px; color:rgba(255,255,255,.28); font-style:italic; }
   .slot .w{
-    flex:0 0 auto; font-family:'Bebas Neue',sans-serif; font-size:30px; color:#fff;
+    flex:0 0 auto; font-family:'Bebas Neue',sans-serif; font-size:34px; color:#fff;
     font-variant-numeric:tabular-nums;
   }
   .slot.filled .w{ color:var(--gold); }
+
+  #boardFoot{
+    background:var(--gold); color:var(--navy);
+    border-radius:0 0 14px 14px; padding:8px 20px 11px;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 14px 34px rgba(0,0,0,.45);
+  }
+  #boardFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+  #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:58px; line-height:.9; }
 
   /* ==================== FINAL / BEST TEAM ==================== */
   #final{
@@ -491,18 +480,14 @@
 
   <!-- LINEUP BOARD -->
   <div id="board">
-    <div id="boardInner">
-      <div id="boardHead">
-        <div>
-          <div id="boardTeam" class="bebas">The Lineup</div>
-          <div id="boardSub">Geoguessr Lineup Challenge</div>
-        </div>
-        <div id="boardTotalWrap">
-          <span class="lbl">Total WAR</span>
-          <span id="boardTotal" class="bebas">0.0</span>
-        </div>
-      </div>
-      <div id="boardBody"></div>
+    <div id="boardHead">
+      <div id="boardTeam" class="bebas">The Lineup</div>
+      <div id="boardSub">Geoguessr Lineup Challenge</div>
+    </div>
+    <div id="boardBody"></div>
+    <div id="boardFoot">
+      <div class="lbl">Total WAR</div>
+      <div id="boardTotal" class="bebas">0.0</div>
     </div>
   </div>
 
@@ -581,6 +566,7 @@ const cmpBody=$('cmpBody'), cmpMine=$('cmpMine'), cmpBest=$('cmpBest'), leftTabl
    ============================================================ */
 let T = { running:false, remaining:180, dur:180, base:0, nonce:-1 };
 let buzzed = false;
+let timerShown = false, hiddenAt = 0;
 
 function applyTimer(t, catchUp){
   if(!t) return;
@@ -613,7 +599,10 @@ function paintTimer(){
   const r = liveRemaining();
   const secs = Math.ceil(r - 0.001);
   const m = Math.floor(secs/60), s = secs%60;
-  timerClock.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  /* While it eases off screen the clock is still visible, so hold the last
+     reading rather than letting the reset to 3:00 flash on the way out. */
+  const settling = !timerShown && (Date.now() - hiddenAt) < 800;
+  if(!settling) timerClock.textContent = `${m}:${String(s).padStart(2,'0')}`;
   timerBox.style.setProperty('--prog', T.dur ? Math.max(0, r/T.dur) : 0);
 
   timerWrap.classList.toggle('warn', r <= 60 && r > 15);
@@ -733,7 +722,9 @@ function runRoll(r){
   if(!r) return;
   const pool = (r.pool||[]).map(player).filter(Boolean);
   const finalP = player(r.finalId);
-  rollKicker.textContent = `Missed It — Random Draw from ${stateName(r.st).toUpperCase()}`;
+  rollKicker.textContent = r.why === 'player'
+    ? `Right State, Wrong Player — Top 25 from ${stateName(r.st).toUpperCase()}`
+    : `Missed It — Random Draw from ${stateName(r.st).toUpperCase()}`;
   roll.classList.remove('landed');
   roll.classList.add('spinning');
   rollIdx.textContent = '';
@@ -760,7 +751,7 @@ function land(p, r){
   clearInterval(rollTimer);
   roll.classList.remove('spinning');
   roll.classList.add('landed');
-  rollName.textContent = p.n;
+  rollName.textContent = nameOf(p, null);
   rollSub.textContent = `${p.p} • ${war(p.w)} career WAR`;
   rollIdx.textContent = r && r.idx ? `#${r.idx} of ${r.of} born in ${stateName(r.st)}` : '';
   tone(660, .12, .2); setTimeout(()=>tone(990,.28,.22), 130);
@@ -852,11 +843,23 @@ function renderFinal(s){
     : `They nailed it — <b>best possible team</b>`;
 }
 
+/* Long names ("District of Columbia") would otherwise push the banner into the
+   timer, so step the type down until the whole box fits its 600px budget. */
+function fitBanner(){
+  const body = document.getElementById('bannerBody');
+  let size = 66;
+  bannerState.style.fontSize = size + 'px';
+  for(let i = 0; i < 14 && body.getBoundingClientRect().width > 600; i++){
+    size -= 3;
+    bannerState.style.fontSize = size + 'px';
+  }
+}
+
 /* ============================================================
-   STAGE — card / roll / board share one footprint, so showing a new
+   STAGE — card / roll share one footprint, so showing a new
    one has to walk the old one off to the left first.
    ============================================================ */
-const PANELS = { card, roll, board };
+const PANELS = { card, roll };
 let stageNow = '';
 function setStage(next){
   if(next === stageNow) return;
@@ -896,13 +899,17 @@ function applyState(s, catchUp){
   applyTimer(s.timer, catchUp);
   roundTag.textContent = s.round ? `Round ${s.round} of 9` : '';
   roundTag.style.display = s.round ? '' : 'none';
-  timerWrap.classList.toggle('show', !!show.timer);
+  if(!!show.timer !== timerShown){
+    timerShown = !!show.timer;
+    if(!timerShown) hiddenAt = Date.now();
+  }
+  timerWrap.classList.toggle('show', timerShown);
 
   /* banner */
   const b = s.banner || {};
   if(b.st){
     bannerState.textContent = stateName(b.st).toUpperCase();
-    bannerState.style.fontSize = stateName(b.st).length > 12 ? '82px' : '112px';
+    fitBanner();
     bannerKicker.textContent = b.ok === null || b.ok === undefined ? 'Birthplace State' : 'Where They Landed';
     if(b.ok === true){ verdict.textContent = 'Got It'; verdict.className = 'bebas good on'; }
     else if(b.ok === false){ verdict.textContent = 'Missed It'; verdict.className = 'bebas bad on'; }
@@ -925,8 +932,8 @@ function applyState(s, catchUp){
   const wantCard = !!show.card && !!(s.card && s.card.id);
   const wantRoll = !!show.roll;
   /* one at a time, in priority order — a roll or a reveal outranks the board */
-  const stage = wantRoll ? 'roll' : (wantCard ? 'card' : (show.lineup ? 'board' : ''));
-  setStage(stage);
+  setStage(wantRoll ? 'roll' : (wantCard ? 'card' : ''));
+  board.classList.toggle('show', !!show.lineup);
 
   renderStrip(s);
   strip.classList.toggle('show', !!show.strip);

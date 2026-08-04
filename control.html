@@ -333,6 +333,10 @@
       <label class="hint" style="margin:0;"><input type="checkbox" id="fpOnly"> only positions still open</label>
     </div>
     <div class="resultsBox" id="playerResults"></div>
+    <div class="row" style="margin-top:10px;">
+      <button class="red" id="wrongPlayerBtn">🎲 Wrong player — draw Top 25 WAR</button>
+      <span class="hint" style="margin:0;">They had the state but named the wrong guy, so the wheel picks from the state's top 25.</span>
+    </div>
   </div>
 
   <!-- random draw -->
@@ -786,12 +790,23 @@ $('stateSearch').addEventListener('keydown', e => { if(e.key==='Enter') $('state
 /* ============================================================
    VERDICT
    ============================================================ */
+/* The guessing is over the moment the state is called, so walk the timer off
+   and put it back to full — ready for the next round without another click. */
+function retireTimer(){
+  state.timer.running = false;
+  state.timer.remaining = state.timer.dur;
+  state.timer.nonce++;
+  tickBase = performance.now();
+  state.show.timer = false;
+}
+
 $('gotItBtn').addEventListener('click', () => {
   ui.verdict = true; ui.pickId = null; ui.forced = false; ui.slot = '';
   state.banner = { st: ui.st, ok: true };
   state.show.banner = true;
   state.show.roll = false;
   state.show.card = false;
+  retireTimer();
   $('pickBlock').style.display = 'block';
   $('rollBlock').style.display = 'none';
   renderPlayerList();
@@ -803,6 +818,7 @@ $('missedBtn').addEventListener('click', () => {
   state.banner = { st: ui.st, ok: false };
   state.show.banner = true;
   state.show.card = false;
+  retireTimer();
   $('pickBlock').style.display = 'none';
   $('rollBlock').style.display = 'block';
   publish();
@@ -840,7 +856,7 @@ function renderPlayerList(){
 $('playerSearch').addEventListener('input', renderPlayerList);
 $('fpOnly').addEventListener('change', renderPlayerList);
 
-function selectPlayer(id, forced){
+function selectPlayer(id, forced, quiet){
   ui.pickId = id;
   ui.forced = !!forced;
   ui.nm = '';
@@ -854,6 +870,9 @@ function selectPlayer(id, forced){
          || p.e.find(e => open.includes(e))
          || '';
   state.card = { id, st: ui.st, slot: ui.slot, forced: !!forced };
+  /* clicking a player is the reveal — a roll handles its own timing, so it
+     passes quiet and the spin plays out before the card takes over */
+  if(!quiet) state.show.card = true;
   $('dispName').value = p.n;
   persist();
   publish();
@@ -880,36 +899,43 @@ $('dispNameReset').addEventListener('click', () => {
 /* ============================================================
    RANDOM ROLL
    ============================================================ */
-$('rollBtn').addEventListener('click', () => {
+function doRoll(mode, why){
   const st = ui.st;
   const full = poolFor(st);
   if(!full.length){ alert('No players carried for that state.'); return; }
-  const mode = $('rollPool').value;
   const open = new Set(openSlots());
   let cand = full;
-  if(mode === 'top25') cand = full.slice(0,25);
+  if(mode === 'top25') cand = full.slice(0, 25);
   else if(mode === 'deep') cand = full.slice(25).length ? full.slice(25) : full;
   else if(mode === 'openpos'){
     const f = full.filter(p => p.e.some(e => open.has(e)));
     cand = f.length ? f : full;
   }
-  const pick = cand[Math.floor(Math.random()*cand.length)];
+  const pick = cand[Math.floor(Math.random() * cand.length)];
 
   /* names the display spins through before it lands */
   const spin = [];
   const src = cand.length > 1 ? cand : full;
-  for(let i=0; i<Math.min(26, src.length); i++){
-    spin.push(src[Math.floor(Math.random()*src.length)].id);
+  for(let i = 0; i < Math.min(26, src.length); i++){
+    spin.push(src[Math.floor(Math.random() * src.length)].id);
   }
   state.roll = {
-    nonce: (state.roll.nonce||0) + 1,
-    st, finalId: pick.id, pool: spin,
+    nonce: (state.roll.nonce || 0) + 1,
+    st, finalId: pick.id, pool: spin, why,
     idx: full.indexOf(pick) + 1, of: full.length
   };
   state.show.roll = true;
   state.show.card = false;
-  selectPlayer(pick.id, true);
-  publish(true);                 // a spin always goes out, nonce and all
+  selectPlayer(pick.id, true, true);
+  publish(true);                 /* a spin always goes out, nonce and all */
+}
+
+$('rollBtn').addEventListener('click', () => doRoll($('rollPool').value, 'state'));
+
+/* they got the state but not the player — penalty is a top-25 draw */
+$('wrongPlayerBtn').addEventListener('click', () => {
+  ui.forced = true;
+  doRoll('top25', 'player');
 });
 
 /* ============================================================
