@@ -36,6 +36,9 @@
     --enterX:150px;    /* arrives from the right */
     --exitX:-150px;    /* leaves to the left */
     --swap:cubic-bezier(.22,.92,.24,1);
+    /* every graphic gets the same lift off the video */
+    --shadow:0 14px 32px rgba(0,0,0,.55);
+    --drop:drop-shadow(0 12px 26px rgba(0,0,0,.5));
   }
 
   .bebas{ font-family:'Bebas Neue', Impact, sans-serif; letter-spacing:1px; }
@@ -59,7 +62,7 @@
     background:linear-gradient(180deg, var(--navy2), var(--navy));
     border:4px solid var(--gold);
     border-radius:20px;
-    box-shadow:0 18px 44px rgba(0,0,0,.55);
+    box-shadow:var(--shadow);
     padding:14px 54px 18px;
     display:flex; flex-direction:column; align-items:center;
     min-width:430px;
@@ -96,7 +99,7 @@
     background:var(--gold); color:var(--navy);
     font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
     padding:5px 22px; border-radius:20px;
-    box-shadow:0 6px 16px rgba(0,0,0,.4);
+    box-shadow:var(--shadow);
   }
 
   /* ==================== STATE BANNER ==================== */
@@ -106,6 +109,7 @@
     transition:transform 620ms cubic-bezier(.2,.9,.2,1), opacity 480ms ease;
   }
   #banner.show{ opacity:1; transform:translateX(0); }
+  #banner{ filter:var(--drop); }
   #bannerKicker{
     display:inline-block;
     background:var(--gold); color:var(--navy);
@@ -117,7 +121,6 @@
     background:linear-gradient(180deg, var(--navy2), var(--navy));
     border-left:9px solid var(--gold);
     border-radius:0 11px 11px 0;
-    box-shadow:0 18px 44px rgba(0,0,0,.55);
     padding:10px 26px 14px 24px;
     align-items:center; gap:20px;
   }
@@ -152,7 +155,7 @@
     background:linear-gradient(165deg, var(--navy2) 0%, var(--navy) 66%);
     border:5px solid var(--gold);
     border-radius:26px;
-    box-shadow:0 26px 64px rgba(0,0,0,.65);
+    box-shadow:var(--shadow);
     display:flex; flex-direction:column; overflow:hidden;
   }
 
@@ -274,7 +277,7 @@
     background:linear-gradient(135deg,#3a1414 0%, var(--navy) 70%);
     border:4px solid var(--red);
     border-radius:22px;
-    box-shadow:0 22px 56px rgba(0,0,0,.6);
+    box-shadow:var(--shadow);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     overflow:hidden; position:relative;
   }
@@ -306,6 +309,7 @@
     position:absolute; right:56px; top:120px; width:496px;
     opacity:0; transform:translateX(130px);
     transition:transform 700ms var(--swap), opacity 520ms ease;
+    filter:var(--drop);
   }
   #board.show{ opacity:1; transform:translateX(0); }
   #boardHead{
@@ -316,7 +320,7 @@
   #boardTeam{ font-family:'Bebas Neue',sans-serif; font-size:46px; line-height:.95; }
   #boardSub{ font-size:15px; font-weight:700; letter-spacing:4px; text-transform:uppercase; opacity:.75; }
   #boardBody{
-    background:linear-gradient(180deg, rgba(19,44,64,.97), rgba(13,31,45,.97));
+    background:linear-gradient(180deg, var(--navy2), var(--navy));   /* fully opaque */
     border:3px solid var(--gold); border-top:none;
     padding:9px;
   }
@@ -357,92 +361,90 @@
     background:var(--gold); color:var(--navy);
     border-radius:0 0 14px 14px; padding:8px 20px 11px;
     display:flex; align-items:center; justify-content:space-between;
-    box-shadow:0 14px 34px rgba(0,0,0,.45);
   }
   #boardFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
   #boardTotal{ font-family:'Bebas Neue',sans-serif; font-size:58px; line-height:.9; }
 
   /* ==================== FINAL / BEST TEAM ==================== */
+  /* Sits exactly where the lineup board does and takes its place, so the
+     finale lands in the spot the audience has been watching all game. */
   #final{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none;
-    transition:opacity 620ms ease;
+    position:absolute; right:56px; top:120px; width:780px;
+    opacity:0; transform:translateX(var(--enterX));
+    transition:transform 700ms var(--swap), opacity 520ms ease;
   }
-  #final.show{ opacity:1; }
+  #final.show{ opacity:1; transform:translateX(0); }
+  #final.leaving{ opacity:0; transform:translateX(var(--exitX)); }
   #finalCard{
     background:linear-gradient(160deg, var(--navy2) 0%, #091722 75%);
     border:5px solid var(--gold);
     border-radius:26px;
-    box-shadow:0 30px 80px rgba(0,0,0,.7);
-    padding:26px 42px 32px;
-    transform:scale(.94);
-    transition:transform 620ms cubic-bezier(.2,.9,.2,1);
+    box-shadow:var(--shadow);
+    padding:16px 26px 20px;
   }
-  #final.show #finalCard{ transform:scale(1); }
   #finalKicker{
     text-align:center; color:var(--gold);
-    font-size:24px; font-weight:700; letter-spacing:8px; text-transform:uppercase;
+    font-size:17px; font-weight:700; letter-spacing:6px; text-transform:uppercase;
   }
   #finalTeam{
-    text-align:center; font-family:'Bebas Neue',sans-serif; font-size:78px;
-    color:#fff; line-height:1; margin-top:2px;
+    text-align:center; font-family:'Bebas Neue',sans-serif; font-size:56px;
+    color:#fff; line-height:1; margin-top:1px;
   }
   #finalBig{
-    text-align:center; margin:10px 0 4px;
+    text-align:center; margin:4px 0 2px;
   }
   #finalBig .num{
-    font-family:'Bebas Neue',sans-serif; font-size:184px; line-height:.86; color:var(--gold);
+    font-family:'Bebas Neue',sans-serif; font-size:118px; line-height:.86; color:var(--gold);
     text-shadow:0 8px 26px rgba(0,0,0,.6); display:block;
   }
   #finalBig .lbl{
-    font-size:26px; font-weight:700; letter-spacing:9px; color:#fff; text-transform:uppercase;
+    font-size:18px; font-weight:700; letter-spacing:6px; color:#fff; text-transform:uppercase;
   }
   #finalGrade{
-    text-align:center; margin-top:8px;
+    text-align:center; margin-top:5px;
     display:inline-block; background:var(--gold); color:var(--navy);
-    font-size:27px; font-weight:700; letter-spacing:3px; padding:5px 26px 7px; border-radius:22px;
+    font-size:21px; font-weight:700; letter-spacing:2px; padding:3px 20px 5px; border-radius:20px;
   }
   #gradeRow{ text-align:center; }
 
-  #cmp{ margin-top:22px; display:none; }
+  #cmp{ margin-top:12px; display:none; }
   #final.withBest #cmp{ display:block; }
   #cmpHead{
-    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
-    gap:10px; align-items:end; padding:0 4px 7px;
+    display:grid; grid-template-columns:48px 1fr 62px 1fr 62px;
+    gap:8px; align-items:end; padding:0 3px 5px;
     border-bottom:2px solid rgba(251,204,122,.4);
   }
-  #cmpHead div{ font-size:16px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
+  #cmpHead div{ font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold); }
   #cmpHead .r{ text-align:right; }
   .cmpRow{
-    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
-    gap:10px; align-items:center; padding:5px 4px;
+    display:grid; grid-template-columns:48px 1fr 62px 1fr 62px;
+    gap:8px; align-items:center; padding:2px 3px;
     border-bottom:1px solid rgba(255,255,255,.07);
   }
-  .cmpRow .pos{ font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--gold); }
-  .cmpRow .nm{ font-size:23px; color:#fff; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .cmpRow .nm .st{ color:rgba(251,204,122,.7); font-size:17px; font-family:'DM Mono',monospace; }
-  .cmpRow .w{ font-family:'Bebas Neue',sans-serif; font-size:29px; text-align:right; font-variant-numeric:tabular-nums; }
+  .cmpRow .pos{ font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--gold); }
+  .cmpRow .nm{ font-size:19px; color:#fff; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cmpRow .nm .st{ color:rgba(251,204,122,.7); font-size:14px; font-family:'DM Mono',monospace; }
+  .cmpRow .w{ font-family:'Bebas Neue',sans-serif; font-size:23px; text-align:right; font-variant-numeric:tabular-nums; }
   .cmpRow .mine{ color:#fff; }
   .cmpRow .best{ color:var(--gold); }
   .cmpRow.same .nm.bestn{ color:var(--green); }
-  .cmpRow .empty{ color:rgba(255,255,255,.3); font-style:italic; font-size:20px; }
+  .cmpRow .empty{ color:rgba(255,255,255,.3); font-style:italic; font-size:16px; }
   #cmpFoot{
-    display:grid; grid-template-columns:66px 1fr 78px 1fr 78px;
-    gap:10px; align-items:center; margin-top:9px; padding-top:10px;
+    display:grid; grid-template-columns:48px 1fr 62px 1fr 62px;
+    gap:8px; align-items:center; margin-top:6px; padding-top:7px;
     border-top:2px solid var(--gold);
   }
-  #cmpFoot .lbl{ font-size:19px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
-  #cmpFoot .w{ font-family:'Bebas Neue',sans-serif; font-size:42px; text-align:right; font-variant-numeric:tabular-nums; }
+  #cmpFoot .lbl{ font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold); }
+  #cmpFoot .w{ font-family:'Bebas Neue',sans-serif; font-size:30px; text-align:right; font-variant-numeric:tabular-nums; }
   /* the two totals are the whole point of this card — they were inheriting a
      dark colour because .mine/.best were scoped to .cmpRow only */
   #cmpFoot .w.mine{ color:#fff; }
   #cmpFoot .w.best{ color:var(--gold); }
   #leftTable{
-    margin-top:14px; text-align:center;
-    font-size:25px; color:#ffb3ad; font-weight:700; letter-spacing:1px;
+    margin-top:9px; text-align:center;
+    font-size:19px; color:#ffb3ad; font-weight:700; letter-spacing:1px;
   }
-  #leftTable b{ color:var(--red); font-family:'Bebas Neue',sans-serif; font-size:34px; }
+  #leftTable b{ color:var(--red); font-family:'Bebas Neue',sans-serif; font-size:26px; }
 
   /* ==================== STATES-USED STRIP ==================== */
   #strip{
@@ -461,7 +463,7 @@
     border:2px solid var(--gold);
     color:#fff; font-family:'Bebas Neue',sans-serif; font-size:29px; letter-spacing:2px;
     padding:2px 14px 0; border-radius:8px;
-    box-shadow:0 6px 16px rgba(0,0,0,.4);
+    box-shadow:var(--shadow);
   }
   .stPill.miss{ border-color:var(--red); color:#ffb3ad; }
 </style>
@@ -950,7 +952,7 @@ function fitBanner(){
    STAGE — card / roll share one footprint, so showing a new
    one has to walk the old one off to the left first.
    ============================================================ */
-const PANELS = { card, roll };
+const PANELS = { card, roll, board, final };
 let stageNow = '';
 function setStage(next){
   if(next === stageNow) return;
@@ -970,10 +972,12 @@ function setStage(next){
   if(next && PANELS[next]){
     const el = PANELS[next];
     el.classList.remove('leaving');
-    /* a frame at the entry position, then transition in */
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      if(stageNow === next) el.classList.add('show');
-    }));
+    /* Force a style flush so the transition starts from the entry position.
+       A requestAnimationFrame would be the obvious way, but rAF never fires
+       while the document is hidden — an OBS source sitting on an off-air scene
+       would simply never bring the panel in. */
+    void el.offsetWidth;
+    el.classList.add('show');
   }
 }
 
@@ -990,9 +994,7 @@ document.addEventListener('visibilitychange', () => {
     el.classList.remove('leaving');
     el.classList.toggle('show', k === want);
   });
-  requestAnimationFrame(() => {
-    Object.keys(PANELS).forEach(k => { PANELS[k].style.transition = ''; });
-  });
+  Object.keys(PANELS).forEach(k => { void PANELS[k].offsetWidth; PANELS[k].style.transition = ''; });
 });
 
 /* ============================================================
@@ -1001,9 +1003,9 @@ document.addEventListener('visibilitychange', () => {
 function applyState(s, catchUp){
   if(!s) return;
   const show = Object.assign({}, s.show || {});
-  /* The final card covers the middle of the frame, so the round graphics get
-     out of the way on their own rather than showing through it. */
-  if(show.final){ show.banner = false; show.card = false; show.roll = false; show.strip = false; }
+  /* The finale takes the lineup board's place, so everything that shares that
+     side of the frame steps aside for it. */
+  if(show.final){ show.card = false; show.roll = false; }
 
   applyTimer(s.timer, catchUp);
   roundTag.textContent = s.round ? `Round ${s.round} of 9` : '';
@@ -1024,10 +1026,12 @@ function applyState(s, catchUp){
       verdict.textContent = b.ok ? 'Got It' : 'Missed It';
       verdict.className = 'bebas ' + (b.ok ? 'good' : 'bad');
       if(verdict.style.display === 'none'){
-        /* it was taking up no room; give the browser a frame at the small
-           scale so the stamp actually pops in rather than just appearing */
+        /* it was taking up no room; flush at the small scale so the stamp pops
+           in rather than just appearing (and without rAF, which is dead while
+           the document is hidden) */
         verdict.style.display = '';
-        requestAnimationFrame(() => requestAnimationFrame(() => verdict.classList.add('on')));
+        void verdict.offsetWidth;
+        verdict.classList.add('on');
       } else {
         verdict.classList.add('on');
       }
@@ -1056,11 +1060,12 @@ function applyState(s, catchUp){
   const wantCard = !!show.card && !!(s.card && s.card.id);
   const wantRoll = !!show.roll;
   /* one at a time, in priority order — a roll or a reveal outranks the board */
-  const stage = wantRoll ? 'roll' : (wantCard ? 'card' : '');
-  setStage(stage);
-  /* card and board share the right side, so whichever is on stage wins and the
-     lineup steps aside — that's what the Show Card button is really doing */
-  board.classList.toggle('show', !!show.lineup && !stage);
+  /* One stage on the right: the finale outranks a draw, a draw outranks a
+     reveal, and the lineup board holds it the rest of the time. */
+  setStage(show.final ? 'final'
+         : wantRoll   ? 'roll'
+         : wantCard   ? 'card'
+         : show.lineup ? 'board' : '');
 
   renderStrip(s);
   strip.classList.toggle('show', !!show.strip);

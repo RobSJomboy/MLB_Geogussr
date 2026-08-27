@@ -16,7 +16,7 @@ Two pages, same as the Trade Deadline setup — you drive `control.html` from an
 | Page | What it is |
 |---|---|
 | [`control.html`](control.html) | Host panel. Everything on one screen, no scrolling: timer and state grid on the left, player search and scouting report in the middle, lineup, final and live preview on the right. |
-| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. The lineup board, the player card and the random-draw spin all share the right-hand side and take turns. |
+| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. The lineup board, the player card, the random-draw spin and the finale all share the right-hand side and take turns — one panel at a time. |
 | [`index.html`](index.html) | Landing page with links to both. |
 | `players.js` | The data — 6,278 players. |
 
@@ -106,9 +106,14 @@ Little things that matter on air:
 
 ## The finale
 
+The finale takes the lineup board's place — same corner of the frame the
+audience has been watching all game — rather than covering the screen.
+
 - **Reveal Total WAR** — the total, plus a grade ("Legit World Series Team", "Triple-A At Best").
 - **Build Best Possible Team** — the optimal lineup from the states they actually visited,
   side by side with theirs, and the WAR gap.
+
+Hide it and the lineup board slides straight back.
 
 By default the best team obeys the same rule they played by: **one player per state**
 (solved exactly, not greedily — it will happily move Honus Wagner to first base if that
