@@ -30,8 +30,8 @@
     --panelX:1084px;   /* 1920 - 56 right margin - 780 wide */
     --panelY:140px;
     --panelW:780px;
-    --panelH:840px;
-    --rollY:420px;
+    --panelH:606px;
+    --rollY:293px;
     --rollH:300px;
     --enterX:150px;    /* arrives from the right */
     --exitX:-150px;    /* leaves to the left */
@@ -136,8 +136,9 @@
   #verdict.bad{ background:var(--red); box-shadow:0 8px 22px rgba(226,69,60,.45); }
 
   /* ==================== PLAYER CARD ====================
-     Tall portrait panel on the right. Photo across the top with the position
-     badge and the WAR chip riding on it, then the name and the numbers. */
+     Header is a portrait thumbnail beside the name and bio; the numbers run
+     full width underneath. A short full-width photo strip can only ever show a
+     band of a portrait headshot, so the photo is small and upright instead. */
   #card{
     position:absolute; left:var(--panelX); top:var(--panelY);
     width:var(--panelW); height:var(--panelH);
@@ -154,73 +155,85 @@
     box-shadow:0 26px 64px rgba(0,0,0,.65);
     display:flex; flex-direction:column; overflow:hidden;
   }
+
+  #cardHead{ flex:0 0 auto; display:flex; gap:20px; padding:20px 24px 0; }
   #shotWrap{
-    /* explicit height, not just a flex-basis: the headshot below uses
-       height:100%, which only resolves against a definite height. Without it
-       the image renders at its own aspect ratio and shoves the name and stats
-       out of the clipped panel. */
-    flex:0 0 370px; height:370px; width:100%; position:relative; overflow:hidden;
+    flex:0 0 236px; height:288px; position:relative; overflow:hidden;
+    border-radius:16px; border:3px solid var(--gold);
     background:linear-gradient(180deg,#1c3b55,#0d1f2d);
-    border-bottom:5px solid var(--gold);
   }
-  #shot{ width:100%; height:100%; object-fit:cover; object-position:center 12%; display:block; }
+  #shot{ width:100%; height:100%; object-fit:cover; object-position:center 8%; display:block; }
   #monogram{
     position:absolute; inset:0; display:none;
     align-items:center; justify-content:center;
-    font-family:'Bebas Neue',sans-serif; font-size:190px; color:rgba(251,204,122,.5);
+    font-family:'Bebas Neue',sans-serif; font-size:120px; color:rgba(251,204,122,.5);
   }
   #shotWrap.nopic #shot{ display:none; }
   #shotWrap.nopic #monogram{ display:flex; }
   #posBadge{
-    position:absolute; left:0; bottom:0;
+    position:absolute; left:0; top:0;
     background:var(--gold); color:var(--navy);
-    font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:2px;
-    padding:2px 26px 0; border-radius:0 14px 0 0;
+    font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:2px;
+    padding:0 16px 2px; border-radius:0 0 12px 0;
   }
   #warChip{
-    position:absolute; right:18px; bottom:18px; text-align:center;
+    position:absolute; left:0; right:0; bottom:0;
     background:var(--gold); color:var(--navy);
-    border-radius:16px; padding:8px 26px 10px;
-    box-shadow:0 10px 26px rgba(0,0,0,.55);
+    padding:2px 0 5px; text-align:center;
   }
-  #warChip .num{ font-family:'Bebas Neue',sans-serif; font-size:70px; line-height:.86; display:block; }
-  #warChip .lbl{ font-size:15px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+  #warChip .num{ font-family:'Bebas Neue',sans-serif; font-size:52px; line-height:.88; display:block; }
+  #warChip .lbl{ font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
 
-  #cardMain{ flex:1 1 auto; padding:18px 26px 20px; min-width:0; display:flex; flex-direction:column; }
+  #headText{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
   #cardTop{ display:block; }
   #cardName{
-    font-size:74px; line-height:.92; color:#fff;
+    font-size:62px; line-height:.94; color:#fff;
     text-shadow:0 4px 12px rgba(0,0,0,.45);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
+
   /* where he's from is the whole point of the game, so it gets its own line */
   #cardFrom{
-    margin-top:5px; display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;
-    font-size:27px; color:#fff; font-weight:500; line-height:1.15;
+    margin-top:8px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+    font-size:26px; color:#fff; font-weight:500; line-height:1.15;
   }
   #cardFrom .lbl{
-    font-size:14px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
     color:var(--gold); flex:0 0 auto;
   }
   #cardYears{
-    margin-top:3px; display:flex; align-items:center; gap:9px; flex-wrap:wrap;
-    color:var(--gold); font-size:19px; font-weight:500;
+    margin-top:5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    color:var(--gold); font-size:18px; font-weight:500;
   }
   #cardYears .dot{ opacity:.45; }
 
-  #cardTeams{
-    margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;
-    max-height:70px; overflow:hidden;   /* two rows, whatever he did */
-  }
+  #cardTeams{ margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; overflow:hidden; }
   .team{
     background:rgba(255,255,255,.08); border:1px solid rgba(251,204,122,.4);
-    border-radius:7px; padding:2px 10px 4px; white-space:nowrap;
-    color:#fff; font-size:17px; font-weight:700; letter-spacing:.3px;
+    border-radius:7px; padding:2px 9px 4px; white-space:nowrap;
+    color:#fff; font-size:16px; font-weight:700; letter-spacing:.3px;
   }
-  .team b{ font-family:'Bebas Neue',sans-serif; font-size:21px; letter-spacing:1px; color:var(--gold); margin-right:5px; }
+  .team b{ font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:var(--gold); margin-right:5px; }
+
+  #cardMain{ flex:1 1 auto; padding:14px 24px 18px; min-width:0; display:flex; flex-direction:column; }
+
+  #statLine{
+    display:grid; gap:6px;
+    grid-template-columns:repeat(5, 1fr);
+  }
+  .stat{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(251,204,122,.35);
+    border-radius:9px; padding:3px 8px 5px; text-align:center; min-width:0;
+  }
+  .stat .v{
+    font-family:'Bebas Neue',sans-serif; font-size:29px; color:#fff; line-height:1; display:block;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .stat .k{ font-size:11px; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; font-weight:700; }
 
   #cardPeak{
-    margin-top:8px; display:none; align-items:baseline; gap:8px;
+    margin-top:9px; display:none; align-items:baseline; gap:8px;
     background:rgba(251,204,122,.13); border-left:5px solid var(--gold);
     padding:3px 12px 5px; border-radius:0 7px 7px 0; align-self:flex-start;
   }
@@ -228,21 +241,9 @@
   #cardPeak .lbl{ font-size:13px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--gold); }
   #cardPeak .v{ font-family:'Bebas Neue',sans-serif; font-size:27px; color:#fff; }
 
-  #statLine{
-    margin-top:9px; display:flex; gap:6px; flex-wrap:wrap;
-    max-height:92px; overflow:hidden;   /* two rows */
-  }
-  .stat{
-    background:rgba(255,255,255,.07);
-    border:1px solid rgba(251,204,122,.35);
-    border-radius:9px; padding:3px 10px 5px; text-align:center; min-width:74px;
-  }
-  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:29px; color:#fff; line-height:1; display:block; }
-  .stat .k{ font-size:11px; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; font-weight:700; }
-
   #accolades{
-    margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;
-    max-height:30px; overflow:hidden;   /* one row */
+    margin-top:9px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+    overflow:hidden;
   }
   .acc{
     background:rgba(251,204,122,.16); border:1px solid rgba(251,204,122,.5);
@@ -254,8 +255,8 @@
   #forcedFlag{
     margin-top:auto; display:none; align-items:center; gap:10px;
     background:rgba(226,69,60,.2); border-left:6px solid var(--red);
-    padding:7px 16px; border-radius:0 8px 8px 0;
-    color:#ffb3ad; font-size:21px; font-weight:700; letter-spacing:1px;
+    padding:6px 14px; border-radius:0 8px 8px 0;
+    color:#ffb3ad; font-size:19px; font-weight:700; letter-spacing:1px;
   }
   #card.forced #forcedFlag{ display:flex; }
 
@@ -499,19 +500,23 @@
   <!-- PLAYER CARD -->
   <div id="card">
     <div id="cardInner">
-      <div id="shotWrap">
-        <img id="shot" src="" alt="">
-        <div id="monogram" class="bebas">?</div>
-        <div id="posBadge">CF</div>
-        <div id="warChip"><span class="num bebas">0.0</span><span class="lbl">Career WAR</span></div>
+      <div id="cardHead">
+        <div id="shotWrap">
+          <img id="shot" src="" alt="">
+          <div id="monogram" class="bebas">?</div>
+          <div id="posBadge">CF</div>
+          <div id="warChip"><span class="num bebas">0.0</span><span class="lbl">Career WAR</span></div>
+        </div>
+        <div id="headText">
+          <div id="cardTop">
+            <div id="cardName" class="bebas">Player Name</div>
+          </div>
+          <div id="cardFrom"></div>
+          <div id="cardYears"></div>
+          <div id="cardTeams"></div>
+        </div>
       </div>
       <div id="cardMain">
-        <div id="cardTop">
-          <div id="cardName" class="bebas">Player Name</div>
-        </div>
-        <div id="cardFrom"></div>
-        <div id="cardYears"></div>
-        <div id="cardTeams"></div>
         <div id="statLine"></div>
         <div id="cardPeak"><span class="lbl">Best Season</span><span class="v bebas"></span></div>
         <div id="accolades"></div>
@@ -712,7 +717,7 @@ function statChips(p){
   const twoWay = isP ? (p.h && (p.h.hr||0) >= 25) : (p.pi && (p.pi.w||0) >= 15);
   return twoWay
     ? mine.slice(0, 6).concat(other.slice(0, 4)).join('')
-    : mine.slice(0, 9).join('');
+    : mine.slice(0, 10).join('');
 }
 
 function renderCard(c){
@@ -725,7 +730,7 @@ function renderCard(c){
   posBadge.textContent = c.slot || p.p;
   const shown = nameOf(p, c);
   cardName.textContent = shown;
-  fitText(cardName, 74, 40, 728);
+  fitText(cardName, 62, 32, 470);
   warChip.querySelector('.num').textContent = war(p.w);
 
   /* where he's from — the whole reason he's on this team */
@@ -741,12 +746,12 @@ function renderCard(c){
 
   /* every club he played for, in order */
   const tms = p.tm || [];
-  cardTeams.innerHTML = tms.slice(0, 5).map(t => {
+  cardTeams.innerHTML = tms.slice(0, 4).map(t => {
     const i = t.indexOf(' ');
     const club = i < 0 ? t : t.slice(0, i);
     const when = i < 0 ? '' : t.slice(i + 1);
     return `<span class="team"><b>${esc(club)}</b>${esc(when)}</span>`;
-  }).join('') + (tms.length > 5 ? `<span class="team">+${tms.length - 5} more</span>` : '');
+  }).join('') + (tms.length > 4 ? `<span class="team">+${tms.length - 4} more</span>` : '');
 
   /* best single season */
   if(p.pk){
@@ -765,6 +770,24 @@ function renderCard(c){
   accolades.innerHTML = acc.slice(0, 4).join('');
 
   card.classList.toggle('forced', !!c.forced);
+  fitCard();
+}
+
+/* Nothing on the card may be half-drawn. If a long career doesn't fit, drop
+   whole chips — accolades first, then career numbers — until it does, rather
+   than letting a row get sliced through the middle. */
+function fitCard(){
+  const inner = document.getElementById('cardInner');
+  const main = document.getElementById('cardMain');
+  const over = () => inner.scrollHeight > inner.clientHeight + 1
+                  || main.scrollHeight > main.clientHeight + 1;
+  const order = [accolades, statLine];
+  let guard = 40;
+  while(over() && guard-- > 0){
+    const row = order.find(r => r.children.length > 1);
+    if(!row) break;
+    row.removeChild(row.lastElementChild);
+  }
 }
 
 /* ============================================================

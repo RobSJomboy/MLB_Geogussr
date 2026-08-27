@@ -63,10 +63,10 @@ still reads **GOT IT**, because they did get the state.
 
 **The card takes over the right-hand side.** The player card, the random draw
 and the lineup board all live in the same place, so only one is up at a time.
-**Show Card** puts the player up big — a full-height portrait panel — and the
-lineup board steps aside for it. The card carries:
+**Show Card** puts the player up and the lineup board steps aside for it. The
+card carries:
 
-- the headshot, his position and **career WAR**
+- a portrait headshot with his position and **career WAR** on it
 - **where he's from** — city and state, the whole point of the game
 - the years he played, how many seasons, and how he batted and threw
 - **every club he played for**, with the years at each (`BOS 1914-19 · NYY 1920-34 · BSN 1935`)
@@ -76,9 +76,14 @@ lineup board steps aside for it. The card carries:
 - his **best single season** (`14.1 WAR in 1923`)
 - Hall of Fame, MVPs, Cy Youngs, All-Star and Gold Glove counts, rings
 
-Long careers can't break the layout: a nine-team journeyman shows five clubs and
-`+4 more`, and every row is clamped so the panel is a fixed size no matter who
-comes up. Verified against 400 random players — none overflow. Hit it again (it reads **Hide Card**) and the board slides back.
+Long careers can't break the layout. A nine-team journeyman shows four clubs and
+`+5 more`, the career numbers sit in a fixed five-across grid so rows are always
+whole, and if something still doesn't fit, complete chips are dropped rather
+than a row being sliced through the middle. Swept 600 random players plus the
+longest names and most-travelled careers in the set — nothing clipped.
+
+Players with no headshot on file (a lot of the old-timers) get a monogram
+instead, and the card looks the same either way. Hit it again (it reads **Hide Card**) and the board slides back.
 Locking a player in does the same thing automatically: the card eases off and
 the board returns with him on it.
 
