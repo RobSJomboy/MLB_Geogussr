@@ -19,46 +19,32 @@
     --red:#e2453c;
     --ink:#eef4fa;
     --dim:#8fabc4;
+    --bar:44px;
+    --foot:30px;
   }
+  html,body{ height:100%; }
   body{
     font-family:'DM Sans', -apple-system, Arial, sans-serif;
     background:var(--navy); color:var(--ink);
-    padding:18px 18px 90px; max-width:1180px; margin:0 auto;
-    font-size:15px;
+    font-size:13px; overflow:hidden;
   }
   .bebas{ font-family:'Bebas Neue', Impact, sans-serif; letter-spacing:1px; }
   .mono{ font-family:'DM Mono', monospace; }
-
-  h1{ font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:1px; line-height:1; }
-  h1 span{ color:var(--gold); }
-  .sub{ color:var(--dim); font-size:13px; margin:2px 0 16px; }
-
-  h2{
-    font-size:13px; text-transform:uppercase; letter-spacing:3px; color:var(--gold);
-    margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);
-    display:flex; align-items:center; gap:10px;
-  }
-  h2 .n{
-    background:var(--gold); color:var(--navy); width:22px; height:22px; border-radius:50%;
-    display:inline-flex; align-items:center; justify-content:center;
-    font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0; padding-top:2px;
-  }
-  h2 .note{ font-weight:400; letter-spacing:0; text-transform:none; color:var(--dim); font-size:12px; }
-
-  .row{ display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
-  .hint{ font-size:12px; color:var(--dim); margin-top:6px; line-height:1.5; }
+  .hint{ font-size:11px; color:var(--dim); line-height:1.45; }
+  .row{ display:flex; gap:5px; align-items:center; flex-wrap:wrap; }
+  .grow{ flex:1; min-width:80px; }
+  .spacer{ flex:1; }
 
   input[type=text], input[type=number], select{
-    padding:9px 12px; border-radius:7px; border:1px solid var(--line);
-    background:#0b1a28; color:#fff; font-size:14px; font-family:inherit;
+    padding:6px 8px; border-radius:5px; border:1px solid var(--line);
+    background:#0b1a28; color:#fff; font-size:13px; font-family:inherit; min-width:0;
   }
   input[type=text]:focus, select:focus{ outline:2px solid var(--gold2); border-color:var(--gold2); }
-  .grow{ flex:1; min-width:140px; }
 
   button{
-    padding:9px 14px; border-radius:7px; border:1px solid transparent; cursor:pointer;
-    font-size:13px; font-weight:700; background:#1d3b55; color:#fff; font-family:inherit;
-    transition:background 120ms ease, transform 60ms ease;
+    padding:6px 10px; border-radius:5px; border:1px solid transparent; cursor:pointer;
+    font-size:12px; font-weight:700; background:#1d3b55; color:#fff; font-family:inherit;
+    transition:background 110ms ease, transform 60ms ease; white-space:nowrap;
   }
   button:hover{ background:#27506f; }
   button:active{ transform:translateY(1px); }
@@ -70,358 +56,368 @@
   button.red:hover{ background:#f05a51; }
   button.ghost{ background:transparent; border:1px solid var(--line); color:var(--dim); }
   button.ghost:hover{ background:#16293b; color:#fff; }
-  button:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
-  button.big{ padding:15px 22px; font-size:16px; letter-spacing:.5px; }
+  button:disabled{ opacity:.32; cursor:not-allowed; transform:none; }
+  button.big{ padding:10px 12px; font-size:14px; }
   button.live{ box-shadow:0 0 0 2px var(--green) inset; }
 
-  #connStatus{ font-size:12px; padding:5px 12px; border-radius:20px; background:#2b3947; color:#b9c8d6; }
+  /* ================= TOP BAR ================= */
+  #topbar{
+    height:var(--bar); display:flex; align-items:center; gap:8px;
+    padding:0 10px; background:#081521; border-bottom:1px solid var(--line);
+  }
+  #topbar h1{ font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:1px; white-space:nowrap; }
+  #topbar h1 span{ color:var(--gold); }
+  #connStatus{ font-size:11px; padding:3px 8px; border-radius:12px; background:#2b3947; color:#b9c8d6; white-space:nowrap; }
   #connStatus.ok{ background:#176b3b; color:#fff; }
+  #relayDots{ display:flex; gap:3px; align-items:center; }
+  #relayDots .dot{
+    width:8px; height:8px; border-radius:50%; background:#3d4f61; display:inline-block;
+  }
+  #relayDots .dot.good{ background:var(--green); }
+  #relayDots .dot.bad{ background:var(--red); }
 
-  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
-  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media(max-width:820px){ .grid2{ grid-template-columns:1fr; } }
-
-  /* ---- preview ---- */
-  .previewBox{
-    width:100%; max-width:560px; aspect-ratio:16/9; overflow:hidden; position:relative;
-    background:#081420; border:1px solid var(--line); border-radius:8px;
-    background-image:linear-gradient(45deg,#0e1c28 25%,transparent 25%,transparent 75%,#0e1c28 75%),
-                     linear-gradient(45deg,#0e1c28 25%,transparent 25%,transparent 75%,#0e1c28 75%);
-    background-size:24px 24px; background-position:0 0,12px 12px;
+  /* ================= COLUMNS ================= */
+  #main{
+    height:calc(100vh - var(--bar) - var(--foot));
+    display:grid; grid-template-columns:325px minmax(400px,1fr) 380px;
+    gap:8px; padding:8px;
   }
-  .previewBox iframe{
-    width:1920px; height:1080px; border:0; position:absolute; top:0; left:0;
-    transform:scale(0.2917); transform-origin:top left;
+  @media(max-width:1250px){ #main{ grid-template-columns:290px minmax(340px,1fr) 330px; } }
+  .col{ display:flex; flex-direction:column; gap:8px; min-height:0; min-width:0; }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:8px; min-height:0; display:flex; flex-direction:column;
   }
-  .previewPlaceholder{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    color:var(--dim); font-size:12px; text-align:center; padding:16px;
+  .card.fill{ flex:1 1 0; overflow:hidden; }
+  .card h3{
+    font-size:10px; text-transform:uppercase; letter-spacing:2.5px; color:var(--gold);
+    margin-bottom:6px; display:flex; align-items:center; gap:6px; flex:0 0 auto;
   }
+  .card h3 .note{ font-weight:400; letter-spacing:0; text-transform:none; color:var(--dim); font-size:10px; }
+  .scroll{ overflow-y:auto; min-height:0; }
+  .scroll::-webkit-scrollbar{ width:8px; }
+  .scroll::-webkit-scrollbar-thumb{ background:#26445f; border-radius:4px; }
 
   /* ---- timer ---- */
+  #timerRow{ display:flex; align-items:center; gap:8px; }
   #clockBig{
-    font-family:'Bebas Neue',sans-serif; font-size:78px; line-height:.9;
-    font-variant-numeric:tabular-nums; color:#fff; min-width:180px;
+    font-family:'Bebas Neue',sans-serif; font-size:46px; line-height:.85;
+    font-variant-numeric:tabular-nums; color:#fff; min-width:96px;
   }
   #clockBig.warn{ color:var(--gold); }
   #clockBig.crit{ color:#ff8b82; }
-  #clockState{ font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); }
+  #clockState{ font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); }
 
   /* ---- state grid ---- */
   #stateGrid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(58px, 1fr)); gap:5px;
-    margin-top:8px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(46px,1fr)); gap:3px;
+    margin-top:5px; overflow-y:auto; min-height:0; align-content:start;
   }
   .stBtn{
-    padding:7px 2px 5px; font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:1px;
-    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:6px;
+    padding:4px 1px 3px; font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:1px;
+    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:4px;
     cursor:pointer; text-align:center; line-height:1;
   }
   .stBtn:hover{ background:#1d3b55; color:#fff; }
-  .stBtn .c{ display:block; font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); letter-spacing:0; }
+  .stBtn .c{ display:block; font-family:'DM Mono',monospace; font-size:8px; color:var(--dim); letter-spacing:0; }
   .stBtn.on{ background:var(--gold); border-color:#fff; color:var(--navy); }
   .stBtn.on .c{ color:rgba(13,31,45,.65); }
   .stBtn.used{ border-color:var(--gold2); }
   .stBtn.used::after{ content:'•'; color:var(--gold); }
 
   #statePicked{
-    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-    background:#0b1a28; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-top:10px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:#0b1a28; border:1px solid var(--line); border-radius:6px;
+    padding:5px 8px; margin-top:6px; flex:0 0 auto;
   }
-  #statePickedName{ font-family:'Bebas Neue',sans-serif; font-size:32px; line-height:1; }
-  #statePicked a{ color:var(--gold); font-size:13px; }
+  #statePickedName{ font-family:'Bebas Neue',sans-serif; font-size:22px; line-height:1; }
+  #statePicked a{ color:var(--gold); font-size:11px; }
 
-  /* ---- results list ---- */
+  /* ---- player results ---- */
   .resultsBox{
-    max-height:260px; overflow-y:auto; background:#0b1a28;
-    border:1px solid var(--line); border-radius:8px; margin-top:8px;
+    flex:1 1 auto; overflow-y:auto; background:#0b1a28; min-height:70px;
+    border:1px solid var(--line); border-radius:6px; margin-top:5px;
   }
   .resultItem{
-    display:flex; align-items:center; gap:10px;
-    padding:7px 12px; font-size:14px; cursor:pointer; border-bottom:1px solid #16293b;
+    display:flex; align-items:center; gap:7px;
+    padding:4px 8px; font-size:12px; cursor:pointer; border-bottom:1px solid #16293b;
   }
   .resultItem:hover{ background:#1b334a; }
   .resultItem:last-child{ border-bottom:none; }
-  .resultItem .rank{ font-family:'DM Mono',monospace; font-size:11px; color:var(--dim); width:34px; }
-  .resultItem .nm{ flex:1; }
-  .resultItem .pos{ font-family:'Bebas Neue',sans-serif; font-size:17px; color:var(--gold); width:40px; text-align:center; }
-  .resultItem .war{ font-family:'Bebas Neue',sans-serif; font-size:19px; width:52px; text-align:right; }
-  .resultItem .hof{ color:var(--gold); font-size:12px; }
+  .resultItem .rank{ font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); width:28px; }
+  .resultItem .nm{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .resultItem .pos{ font-family:'Bebas Neue',sans-serif; font-size:14px; color:var(--gold); width:56px; text-align:center; }
+  .resultItem .war{ font-family:'Bebas Neue',sans-serif; font-size:16px; width:44px; text-align:right; }
+  .resultItem .hof{ color:var(--gold); font-size:11px; }
 
   /* ---- scouting card ---- */
-  #scout{ display:none; margin-top:12px; }
-  #scout.on{ display:block; }
-  #scoutTop{ display:flex; gap:14px; align-items:flex-start; }
+  #scout{ display:none; flex:1.35 1 0; min-height:0; overflow-y:auto; }
+  #scout.on{ display:flex; flex-direction:column; }
+  #scoutTop{ display:flex; gap:9px; align-items:flex-start; }
   #scoutImg{
-    width:104px; height:120px; object-fit:cover; object-position:top center;
-    border-radius:8px; background:#0b1a28; border:1px solid var(--line); flex:0 0 auto;
+    width:64px; height:74px; object-fit:cover; object-position:top center;
+    border-radius:5px; background:#0b1a28; border:1px solid var(--line); flex:0 0 auto;
   }
-  #scoutName{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:1; }
-  #scoutLine{ color:var(--gold); font-size:14px; margin-top:2px; }
-  #scoutBio{ font-size:14px; line-height:1.55; margin-top:8px; color:#dfe9f2; }
+  #scoutName{ font-family:'Bebas Neue',sans-serif; font-size:24px; line-height:1; }
+  #scoutLine{ color:var(--gold); font-size:11px; margin-top:1px; }
+  #scoutBio{ font-size:11.5px; line-height:1.4; margin-top:4px; color:#dfe9f2; }
   #scoutWar{
-    background:var(--gold); color:var(--navy); border-radius:8px; padding:5px 14px 7px;
+    background:var(--gold); color:var(--navy); border-radius:6px; padding:3px 9px 5px;
     text-align:center; flex:0 0 auto;
   }
-  #scoutWar .num{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:.9; display:block; }
-  #scoutWar .lbl{ font-size:9px; font-weight:700; letter-spacing:2px; }
-  #scoutStats{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  #scoutWar .num{ font-family:'Bebas Neue',sans-serif; font-size:24px; line-height:.9; display:block; }
+  #scoutWar .lbl{ font-size:8px; font-weight:700; letter-spacing:1.5px; }
+  #scoutStats{ display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
   #scoutStats .s{
-    background:#0b1a28; border:1px solid var(--line); border-radius:6px;
-    padding:4px 10px 5px; text-align:center; min-width:62px;
+    background:#0b1a28; border:1px solid var(--line); border-radius:4px;
+    padding:2px 7px 3px; text-align:center; min-width:48px;
   }
-  #scoutStats .s .v{ font-family:'Bebas Neue',sans-serif; font-size:20px; display:block; line-height:1; }
-  #scoutStats .s .k{ font-size:9px; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; }
-  #scoutAcc{ display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  #scoutStats .s .v{ font-family:'Bebas Neue',sans-serif; font-size:15px; display:block; line-height:1; }
+  #scoutStats .s .k{ font-size:8px; letter-spacing:1px; color:var(--gold); text-transform:uppercase; }
+  #scoutAcc{ display:flex; gap:4px; flex-wrap:wrap; margin-top:5px; }
   #scoutAcc .a{
     background:rgba(251,204,122,.14); border:1px solid rgba(251,204,122,.4);
-    color:#ffe6bb; font-size:12px; border-radius:14px; padding:2px 10px 3px;
+    color:#ffe6bb; font-size:10px; border-radius:10px; padding:1px 7px 2px;
   }
   #scoutAcc .a.hof{ background:var(--gold); color:var(--navy); font-weight:700; }
   #scoutForced{
-    display:none; margin-top:10px; background:rgba(226,69,60,.16); border-left:4px solid var(--red);
-    padding:7px 12px; border-radius:0 6px 6px 0; font-size:13px; color:#ffb3ad; font-weight:700;
+    display:none; margin-top:5px; background:rgba(226,69,60,.16); border-left:3px solid var(--red);
+    padding:4px 8px; border-radius:0 4px 4px 0; font-size:11px; color:#ffb3ad; font-weight:700;
   }
   #scout.forced #scoutForced{ display:block; }
 
   /* ---- slots ---- */
-  #slotBtns{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  #slotBtns{ display:flex; gap:4px; flex-wrap:wrap; margin-top:5px; }
   .slotBtn{
-    font-family:'Bebas Neue',sans-serif; font-size:21px; padding:8px 15px 6px;
-    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:7px; cursor:pointer;
-    line-height:1; position:relative;
+    font-family:'Bebas Neue',sans-serif; font-size:16px; padding:5px 10px 3px;
+    background:#132c40; border:1px solid var(--line); color:#cfe0ef; border-radius:5px;
+    cursor:pointer; line-height:1;
   }
   .slotBtn:hover{ background:#1d3b55; color:#fff; }
   .slotBtn.elig{ border-color:var(--gold2); color:#fff; }
   .slotBtn.on{ background:var(--gold); border-color:#fff; color:var(--navy); }
-  .slotBtn.taken{ opacity:.3; cursor:not-allowed; text-decoration:line-through; }
+  .slotBtn.taken{ opacity:.28; cursor:not-allowed; text-decoration:line-through; }
 
-  /* ---- lineup table ---- */
-  table.lineup{ width:100%; border-collapse:collapse; font-size:14px; }
+  /* ---- lineup ---- */
+  table.lineup{ width:100%; border-collapse:collapse; font-size:12px; }
   table.lineup th{
-    text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase;
-    color:var(--gold); padding:6px 8px; border-bottom:1px solid var(--line);
+    text-align:left; font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--gold); padding:3px 5px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--panel);
   }
-  table.lineup td{ padding:7px 8px; border-bottom:1px solid #16293b; }
-  table.lineup tr:last-child td{ border-bottom:none; }
-  table.lineup .pos{ font-family:'Bebas Neue',sans-serif; font-size:21px; color:var(--gold); width:44px; }
-  table.lineup .war{ font-family:'Bebas Neue',sans-serif; font-size:20px; text-align:right; width:60px; }
-  table.lineup .empty{ color:#5b7691; font-style:italic; }
-  table.lineup .forced{ color:#ff9a92; font-size:11px; font-weight:700; }
-  table.lineup td.st{ font-family:'DM Mono',monospace; font-size:12px; color:var(--dim); width:130px; }
+  table.lineup td{ padding:3px 5px; border-bottom:1px solid #16293b; }
+  table.lineup .pos{ font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--gold); width:32px; }
+  table.lineup .war{ font-family:'Bebas Neue',sans-serif; font-size:15px; text-align:right; width:44px; }
+  table.lineup .empty, .empty{ color:#5b7691; font-style:italic; }
+  table.lineup .forced{ color:#ff9a92; font-size:9px; font-weight:700; }
+  table.lineup td.st{ font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); width:34px; }
+  table.lineup td button{ padding:1px 5px; font-size:10px; }
   #totalBar{
     display:flex; justify-content:space-between; align-items:center;
-    background:var(--gold); color:var(--navy); border-radius:8px;
-    padding:8px 16px; margin-top:10px;
+    background:var(--gold); color:var(--navy); border-radius:5px;
+    padding:3px 10px; margin-top:5px; flex:0 0 auto;
   }
-  #totalBar .l{ font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
-  #totalBar .v{ font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:.9; }
+  #totalBar .l{ font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  #totalBar .v{ font-family:'Bebas Neue',sans-serif; font-size:22px; line-height:.9; }
 
-  /* ---- onair ---- */
-  #onair{
-    position:fixed; left:0; right:0; bottom:0; z-index:50;
-    background:#081521; border-top:1px solid var(--line);
-    padding:8px 16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    box-shadow:0 -8px 24px rgba(0,0,0,.5);
+  /* ---- preview ---- */
+  .previewBox{
+    width:100%; aspect-ratio:16/9; overflow:hidden; position:relative; flex:0 0 auto;
+    background:#081420; border:1px solid var(--line); border-radius:6px;
   }
-  #onair .lbl{ font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-right:4px; }
+  .previewBox iframe{
+    width:1920px; height:1080px; border:0; position:absolute; top:0; left:0;
+    transform-origin:top left;
+  }
+  .previewPlaceholder{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--dim); font-size:11px; text-align:center; padding:10px;
+  }
+
+  /* ---- final ---- */
+  .cmpTable{ width:100%; border-collapse:collapse; font-size:11px; margin-top:5px; }
+  .cmpTable th{ text-align:left; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); padding:3px 4px; border-bottom:1px solid var(--line); }
+  .cmpTable td{ padding:2px 4px; border-bottom:1px solid #16293b; }
+  .cmpTable .w{ font-family:'Bebas Neue',sans-serif; font-size:14px; text-align:right; }
+  .cmpTable tr.better td{ background:rgba(226,69,60,.09); }
+  .cmpTable tr.same td{ background:rgba(63,191,111,.09); }
+  .warn{
+    background:rgba(226,69,60,.14); border-left:3px solid var(--red);
+    padding:5px 8px; border-radius:0 4px 4px 0; font-size:11px; margin-top:5px;
+  }
+
+  /* ================= FOOT / ON AIR ================= */
+  #onair{
+    height:var(--foot); display:flex; align-items:center; gap:5px;
+    padding:0 10px; background:#081521; border-top:1px solid var(--line);
+    overflow:hidden;
+  }
+  #onair .lbl{ font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); }
   .chip{
-    font-size:11px; padding:4px 10px; border-radius:14px; letter-spacing:1px;
+    font-size:9px; padding:2px 7px; border-radius:10px; letter-spacing:.5px;
     background:#1a2a38; color:#6d8299; text-transform:uppercase; font-weight:700;
   }
   .chip.on{ background:var(--green); color:#04220f; }
-  #onair button{ padding:5px 11px; font-size:11px; }
-
-  .cmpTable{ width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
-  .cmpTable th{ text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:5px 6px; border-bottom:1px solid var(--line); }
-  .cmpTable td{ padding:5px 6px; border-bottom:1px solid #16293b; }
-  .cmpTable .w{ font-family:'Bebas Neue',sans-serif; font-size:17px; text-align:right; }
-  .cmpTable tr.better td{ background:rgba(226,69,60,.09); }
-  .cmpTable tr.same td{ background:rgba(63,191,111,.09); }
-  .warn{ background:rgba(226,69,60,.14); border-left:4px solid var(--red); padding:9px 13px; border-radius:0 6px 6px 0; font-size:13px; margin-top:10px; }
+  #onair button{ padding:3px 8px; font-size:10px; }
+  #onair .hint{ font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 </style>
 </head>
 <body>
 
-<h1>Talkin' Baseball — <span>Geoguessr Lineup</span> Control</h1>
-<div class="sub">Three minutes on the map, then take a player born in that state. Build a traditional NL lineup, add up the WAR.</div>
-
-<!-- ============ 1 CONNECTION ============ -->
-<h2><span class="n">1</span> Connection</h2>
-<div class="row">
-  <input type="text" id="topicInput" class="grow" placeholder="ntfy topic (e.g. jomboy-geo-lineup-7k3x9)">
+<div id="topbar">
+  <h1>Geoguessr <span>Lineup</span></h1>
+  <input type="text" id="topicInput" placeholder="ntfy topic" style="width:190px;">
   <button class="primary" id="connectBtn">Connect</button>
   <span id="connStatus">not connected</span>
-</div>
-<div class="row">
+  <div id="relayDots" title="relay health"></div>
   <button class="ghost" id="copyDisplayBtn" disabled>Copy Display URL</button>
-  <button class="ghost" id="refreshPreviewBtn">Refresh Preview</button>
-  <button class="ghost" id="resyncBtn">Force Resync</button>
+  <button class="ghost" id="resyncBtn">Resync</button>
+  <button class="ghost" id="refreshPreviewBtn">↻ Preview</button>
+  <div class="spacer"></div>
+  <input type="text" id="teamName" placeholder="Team name" style="width:140px;">
+  <button id="saveTeamBtn">Set</button>
+  <button class="red" id="resetGameBtn">Reset Game</button>
 </div>
-<div class="previewBox">
-  <iframe id="previewFrame" title="Display preview"></iframe>
-  <div class="previewPlaceholder" id="previewPlaceholder">Connect to a topic to load the preview</div>
-</div>
-<div class="hint">This is <b>display.html</b> loaded exactly the way OBS loads it — same topic, same live sync. If it's not showing here, it won't show in OBS either. Both pages have to be served over http(s) (GitHub Pages), not opened as a local file.</div>
 
-<!-- ============ 2 GAME ============ -->
-<h2><span class="n">2</span> Game</h2>
-<div class="grid2">
-  <div class="panel">
-    <div class="row">
-      <input type="text" id="teamName" class="grow" placeholder="Team name (e.g. Team Trevor)">
-      <button id="saveTeamBtn">Set</button>
-    </div>
-    <div class="hint">Shows on the lineup board and the final card.</div>
-    <div class="row" style="margin-top:12px;">
-      <span class="hint" style="margin:0;">Round timer</span>
-      <input type="number" id="durMin" value="3" min="0" max="30" style="width:62px;"> min
-      <input type="number" id="durSec" value="0" min="0" max="59" style="width:62px;"> sec
-      <button id="setDurBtn">Set</button>
-    </div>
-    <div class="row" style="margin-top:12px;">
-      <button class="red" id="resetGameBtn">Reset Whole Game</button>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="row" style="align-items:flex-end; gap:16px;">
-      <div>
-        <div id="clockState">stopped</div>
-        <div id="clockBig" class="bebas">3:00</div>
-      </div>
-      <div style="flex:1;">
-        <div class="row">
-          <button class="green big" id="startBtn">▶ START</button>
-          <button id="pauseBtn">⏸ Pause</button>
+<div id="main">
+
+  <!-- ============ COLUMN 1 : clock + where they landed ============ -->
+  <div class="col">
+    <div class="card">
+      <h3>Timer <span class="note">space = start/pause · r = reset</span></h3>
+      <div id="timerRow">
+        <div>
+          <div id="clockState">stopped</div>
+          <div id="clockBig" class="bebas">3:00</div>
         </div>
-        <div class="row">
-          <button id="resetTimerBtn">↺ Reset</button>
-          <button id="plus30Btn">+30s</button>
-          <button class="ghost" id="showTimerBtn">Show on Display</button>
+        <div style="flex:1;">
+          <div class="row">
+            <button class="green big" id="startBtn" style="flex:1;">▶ START</button>
+            <button id="pauseBtn">⏸</button>
+            <button id="resetTimerBtn">↺</button>
+            <button id="plus30Btn">+30</button>
+          </div>
+          <div class="row" style="margin-top:4px;">
+            <button class="ghost" id="showTimerBtn" style="flex:1;">Show Timer</button>
+            <input type="number" id="durMin" value="3" min="0" max="30" style="width:38px;">m
+            <input type="number" id="durSec" value="0" min="0" max="59" style="width:38px;">s
+            <button id="setDurBtn">Set</button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="hint">START also pops the timer up on the display. Space = start/pause, R = reset (when you're not typing in a field).</div>
-  </div>
-</div>
 
-<!-- ============ 3 ROUND ============ -->
-<h2><span class="n">3</span> Round <span id="roundNum" style="color:#fff">1</span> of 9 <span class="note" id="roundNote"></span></h2>
-
-<div class="panel">
-  <div class="row">
-    <input type="text" id="stateSearch" class="grow" placeholder="Type a state… (or click below)">
-    <span class="hint" style="margin:0;">Numbers are how many players we carry for that state</span>
-  </div>
-  <div id="stateGrid"></div>
-  <div id="statePicked" style="display:none;">
-    <div id="statePickedName" class="bebas">—</div>
-    <div id="statePickedCount" class="hint" style="margin:0;"></div>
-    <a id="brefLink" href="#" target="_blank" rel="noopener">Baseball Reference birthplace page ↗</a>
-  </div>
-
-  <div class="row" style="margin-top:14px;">
-    <button class="green big" id="gotItBtn" disabled>✅ GOT IT — they pick</button>
-    <button class="red big" id="missedBtn" disabled>❌ MISSED IT — random draw</button>
-  </div>
-  <div class="hint">Either one puts the state + verdict on the display right away.</div>
-
-  <!-- they pick -->
-  <div id="pickBlock" style="display:none; margin-top:14px;">
-    <div class="row">
-      <input type="text" id="playerSearch" class="grow" placeholder="Search a player born in this state…">
-      <label class="hint" style="margin:0;"><input type="checkbox" id="fpOnly"> only positions still open</label>
-    </div>
-    <div class="resultsBox" id="playerResults"></div>
-    <div class="row" style="margin-top:10px;">
-      <button class="red" id="wrongPlayerBtn">🎲 Wrong player — draw Top 25 WAR</button>
-      <span class="hint" style="margin:0;">They had the state but named the wrong guy, so the wheel picks from the state's top 25.</span>
-    </div>
-  </div>
-
-  <!-- random draw -->
-  <div id="rollBlock" style="display:none; margin-top:14px;">
-    <div class="row">
-      <span class="hint" style="margin:0;">Draw from</span>
-      <select id="rollPool">
-        <option value="all">Anyone we carry for the state</option>
-        <option value="top25">Top 25 by WAR</option>
-        <option value="deep">Deep cuts (outside the top 25)</option>
-        <option value="openpos">Anyone who fits an open spot</option>
-      </select>
-      <button class="red big" id="rollBtn">🎲 ROLL RANDOM PLAYER</button>
-    </div>
-    <div class="hint">The display runs the slot-machine spin and lands on the guy. Roll again if you need a re-do before you lock it in.</div>
-  </div>
-
-  <!-- scouting card -->
-  <div id="scout" class="panel" style="background:#0b1a28;">
-    <div id="scoutTop">
-      <img id="scoutImg" src="" alt="">
-      <div style="flex:1; min-width:0;">
-        <div id="scoutName" class="bebas">—</div>
-        <div id="scoutLine"></div>
-        <div id="scoutBio"></div>
+    <div class="card fill">
+      <h3>Round <span id="roundNum" style="color:#fff">1</span> of 9 <span class="note" id="roundNote"></span></h3>
+      <input type="text" id="stateSearch" placeholder="Type a state…">
+      <div id="stateGrid"></div>
+      <div id="statePicked" style="display:none;">
+        <div id="statePickedName" class="bebas">—</div>
+        <div id="statePickedCount" class="hint"></div>
+        <a id="brefLink" href="#" target="_blank" rel="noopener">BBRef ↗</a>
       </div>
-      <div id="scoutWar"><span class="num bebas">0.0</span><span class="lbl">WAR</span></div>
-    </div>
-    <div id="scoutStats"></div>
-    <div id="scoutAcc"></div>
-    <div id="scoutForced">🎲 Forced pick — they missed the state</div>
-
-    <div class="row" style="margin-top:12px;">
-      <span class="hint" style="margin:0;">Name on screen</span>
-      <input type="text" id="dispName" class="grow" placeholder="leave alone unless it reads wrong">
-      <button class="ghost" id="dispNameReset">↺</button>
-    </div>
-    <div class="hint" style="margin-top:0;">MLB's records carry legal suffixes — “Nolan Ryan Jr.”, for one. Fix it here and the overlay follows.</div>
-
-    <div class="row" style="margin-top:12px;">
-      <span class="hint" style="margin:0;">Put him at</span>
-    </div>
-    <div id="slotBtns"></div>
-    <div class="warn" id="slotWarn" style="display:none;"></div>
-    <div class="row" style="margin-top:12px;">
-      <button class="primary big" id="revealBtn">📺 Reveal Card on Display</button>
-      <button class="green big" id="lockBtn" disabled>🔒 LOCK IN TO LINEUP</button>
-      <button class="ghost" id="clearPickBtn">Clear pick</button>
+      <div class="row" style="margin-top:6px; flex:0 0 auto;">
+        <button class="green big" id="gotItBtn" disabled style="flex:1;">✅ GOT IT</button>
+        <button class="red big" id="missedBtn" disabled style="flex:1;">❌ MISSED IT</button>
+      </div>
     </div>
   </div>
+
+  <!-- ============ COLUMN 2 : who they take ============ -->
+  <div class="col">
+    <div class="card fill" id="pickBlock" style="display:none;">
+      <h3>Their Pick <span class="note">clicking a player puts him on air</span></h3>
+      <div class="row">
+        <input type="text" id="playerSearch" class="grow" placeholder="Search this state…">
+        <label class="hint"><input type="checkbox" id="fpOnly"> open spots only</label>
+      </div>
+      <div class="resultsBox" id="playerResults"></div>
+      <button class="red" id="wrongPlayerBtn" style="margin-top:5px; flex:0 0 auto;">🎲 Wrong player — draw Top 25 WAR</button>
+    </div>
+
+    <div class="card" id="rollBlock" style="display:none;">
+      <h3>Random Draw</h3>
+      <div class="row">
+        <select id="rollPool" class="grow">
+          <option value="all">Anyone we carry</option>
+          <option value="top25">Top 25 by WAR</option>
+          <option value="deep">Deep cuts (outside top 25)</option>
+          <option value="openpos">Anyone who fits an open spot</option>
+        </select>
+        <button class="red big" id="rollBtn">🎲 ROLL</button>
+      </div>
+    </div>
+
+    <div class="card scroll" id="scout">
+      <div id="scoutTop">
+        <img id="scoutImg" src="" alt="">
+        <div style="flex:1; min-width:0;">
+          <div id="scoutName" class="bebas">—</div>
+          <div id="scoutLine"></div>
+          <div id="scoutBio"></div>
+        </div>
+        <div id="scoutWar"><span class="num bebas">0.0</span><span class="lbl">WAR</span></div>
+      </div>
+      <div id="scoutStats"></div>
+      <div id="scoutAcc"></div>
+      <div id="scoutForced">🎲 Forced pick — they missed</div>
+      <div class="row" style="margin-top:6px;">
+        <span class="hint">On screen</span>
+        <input type="text" id="dispName" class="grow" placeholder="name as shown">
+        <button class="ghost" id="dispNameReset">↺</button>
+      </div>
+      <div id="slotBtns"></div>
+      <div class="warn" id="slotWarn" style="display:none;"></div>
+      <div class="row" style="margin-top:6px;">
+        <button class="green big" id="lockBtn" disabled style="flex:1;">🔒 LOCK IN</button>
+        <button class="primary" id="revealBtn">📺 Show Card</button>
+        <button class="ghost" id="clearPickBtn">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COLUMN 3 : lineup, final, preview ============ -->
+  <div class="col">
+    <div class="card fill">
+      <h3>The Lineup</h3>
+      <div class="scroll" style="flex:1 1 auto;">
+        <table class="lineup">
+          <thead><tr><th>Pos</th><th>Player</th><th>St</th><th style="text-align:right;">WAR</th><th></th></tr></thead>
+          <tbody id="lineupBody"></tbody>
+        </table>
+      </div>
+      <div id="totalBar"><span class="l">Total WAR</span><span class="v bebas" id="totalWar">0.0</span></div>
+      <div class="row" style="margin-top:5px; flex:0 0 auto;">
+        <button class="ghost" id="showLineupBtn" style="flex:1;">Show Board</button>
+        <button class="ghost" id="showStripBtn" style="flex:1;">Show States</button>
+      </div>
+    </div>
+
+    <div class="card scroll" style="max-height:40%;">
+      <h3>Final</h3>
+      <div class="row">
+        <button class="primary" id="showFinalBtn" style="flex:1;">📺 Total WAR</button>
+        <button class="primary" id="buildBestBtn" style="flex:1;">🏆 Best Team</button>
+        <button class="ghost" id="hideFinalBtn">Hide</button>
+      </div>
+      <label class="hint" style="margin-top:4px; display:block;">
+        <input type="checkbox" id="oneEach" checked> one player per state
+      </label>
+      <div id="bestOut"></div>
+    </div>
+
+    <div class="card" style="flex:0 0 auto;">
+      <h3>Live Preview <span class="note">what OBS sees</span></h3>
+      <div class="previewBox">
+        <iframe id="previewFrame" title="Display preview"></iframe>
+        <div class="previewPlaceholder" id="previewPlaceholder">Connect to load</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- ============ 4 LINEUP ============ -->
-<h2><span class="n">4</span> The Lineup</h2>
-<div class="panel">
-  <table class="lineup">
-    <thead><tr><th>Pos</th><th>Player</th><th>From</th><th style="text-align:right;">WAR</th><th></th></tr></thead>
-    <tbody id="lineupBody"></tbody>
-  </table>
-  <div id="totalBar"><span class="l">Total career WAR</span><span class="v bebas" id="totalWar">0.0</span></div>
-  <div class="row" style="margin-top:10px;">
-    <button class="ghost" id="showLineupBtn">Show Board on Display</button>
-    <button class="ghost" id="showStripBtn">Show States Strip</button>
-  </div>
-</div>
-
-<!-- ============ 5 FINAL ============ -->
-<h2><span class="n">5</span> Final</h2>
-<div class="panel">
-  <div class="row">
-    <button class="primary big" id="showFinalBtn">📺 Reveal Total WAR</button>
-    <button class="primary big" id="buildBestBtn">🏆 Build Best Possible Team</button>
-    <button class="ghost" id="hideFinalBtn">Hide Final</button>
-  </div>
-  <div class="row">
-    <label class="hint" style="margin:0;">
-      <input type="checkbox" id="oneEach" checked> one player per state (same rules they played by)
-    </label>
-  </div>
-  <div class="hint">Best team is picked from the states they actually visited, using each player's real position eligibility. Untick the box to let one loaded state fill several spots.</div>
-  <div id="bestOut"></div>
-</div>
-
-<!-- ============ ON AIR ============ -->
-<div class="warn" id="dupWarn" style="display:none; position:fixed; left:12px; right:12px; bottom:56px; z-index:60;"></div>
+<div class="warn" id="dupWarn" style="display:none; position:fixed; left:10px; right:10px; bottom:36px; z-index:60;"></div>
 
 <div id="onair">
   <span class="lbl">On air</span>
@@ -432,9 +428,11 @@
   <span class="chip" id="chipLineup">Board</span>
   <span class="chip" id="chipStrip">States</span>
   <span class="chip" id="chipFinal">Final</span>
-  <button class="red" id="hideAllBtn">Hide Everything</button>
-  <span class="hint" style="margin:0;" id="reqMeter">ntfy: 0 sent</span>
-  <span class="hint" style="margin:0;" id="saveHint"></span>
+  <button class="red" id="hideAllBtn">Hide All</button>
+  <button class="ghost" id="frozenBtn" title="A URL that paints the current screen with no network at all">Backup URL</button>
+  <div class="spacer"></div>
+  <span class="hint" id="reqMeter">0 sent</span>
+  <span class="hint" id="saveHint"></span>
 </div>
 
 <script src="players.js"></script>
@@ -529,18 +527,30 @@ function restore(){
 /* ============================================================
    TRANSPORT
 
-   ntfy's free tier rate-limits by IP, and a live show can't afford to stall on
-   it. Three things keep us clear of the ceiling:
+   The overlay must not go dark because one server is having a bad night, so
+   every change is published to several independent ntfy instances at once.
+   A send counts as delivered the moment ANY of them accepts it; the display
+   listens to all of them and throws away the duplicates by sequence number.
+   One relay rate-limiting or falling over is a non-event.
 
-   1. We only POST when something the display is actually drawing would change,
-      and bursts of clicks coalesce into one message.
-   2. The preview iframe is driven over a BroadcastChannel instead of ntfy, so
-      it costs nothing and updates instantly. (OBS runs its own browser, so it
-      still needs the topic — that's the one real subscriber.)
-   3. If a POST ever is rate-limited it goes back in the queue and retries with
-      backoff, always sending the newest state. The overlay catches up on its
-      own instead of sitting frozen.
+   On top of that:
+   - the preview iframe runs over a BroadcastChannel, so it costs no requests
+     at all and keeps working even with every relay down;
+   - we only publish when something the display is actually drawing would
+     change, and bursts of clicks coalesce into one message;
+   - anything that fails everywhere goes back in the queue and retries with
+     backoff, always sending the newest state.
    ============================================================ */
+const RELAYS = [
+  'https://ntfy.sh',
+  'https://ntfy.envs.net',
+  'https://ntfy.mzte.de',
+  'https://ntfy.hostux.net',
+  'https://ntfy.adminforge.de'
+];
+/* per-relay health: consecutive failures and when to try it again */
+const relayState = RELAYS.map(host => ({ host, fails: 0, nextTry: 0, ok: null }));
+
 const BC = (() => { try { return new BroadcastChannel('geo_lineup'); } catch(e){ return null; } })();
 
 function visibleSig(){
@@ -565,15 +575,43 @@ function note(msg, bad){
   $('saveHint').innerHTML = bad ? `<b style="color:#ff8b82">${msg}</b>` : msg;
 }
 function meter(){
-  $('reqMeter').textContent = `ntfy: ${sentCount} sent` + (pending !== null ? ' · queued' : '');
+  const up = relayState.filter(r => r.ok !== false).length;
+  const el = $('reqMeter');
+  el.textContent = `${sentCount} sent · ${up}/${RELAYS.length} relays`
+    + (pending !== null ? ' · queued' : '');
+  el.style.color = up === 0 ? '#ff8b82' : (up < RELAYS.length ? '#fbcc7a' : '');
+  $('relayDots').innerHTML = relayState.map(r =>
+    `<span class="dot ${r.ok === false ? 'bad' : (r.ok ? 'good' : '')}" title="${esc(r.host.replace('https://',''))}"></span>`
+  ).join('');
 }
 
-/* absolute deadline travels with every message, so a reloaded OBS source lands
-   on the right time even if the payload sat in a retry queue for a while */
+/* Absolute deadline and a clock-based sequence ride along with every message:
+   the deadline so a reloaded OBS source lands on the right time even if the
+   payload sat in a retry queue, the sequence so the display can drop the
+   duplicate copies the other relays deliver. Clock-based rather than a counter
+   so a control-page reload doesn't restart below what the display has drawn. */
+let lastStamp = 0;
 function stamp(){
   state.timer.endsAt = state.timer.running
     ? Date.now() + Math.round(liveRemaining() * 1000) : 0;
   state.timer.remaining = liveRemaining();
+  /* strictly increasing even if two changes land in the same millisecond */
+  state.seq = lastStamp = Math.max(Date.now(), lastStamp + 1);
+}
+
+function postTo(r, body){
+  return fetch(`${r.host}/${encodeURIComponent(TOPIC)}`, { method:'POST', body })
+    .then(res => {
+      if(!res.ok) throw new Error(res.status);
+      r.fails = 0; r.ok = true; r.nextTry = 0;
+      return true;
+    })
+    .catch(() => {
+      r.fails++; r.ok = false;
+      /* rest a struggling relay for a bit, but never longer than a round */
+      r.nextTry = Date.now() + Math.min(60000, 3000 * r.fails);
+      return false;
+    });
 }
 
 function flush(){
@@ -582,46 +620,45 @@ function flush(){
   const body = pending;
   pending = null;
   meter();
-  fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}`, { method:'POST', body })
-    .then(res => {
-      if(res.status === 429 || res.status >= 500){
-        if(pending === null) pending = body;         /* newer state wins if one arrived */
-        backoff = Math.min(30000, backoff ? Math.round(backoff * 1.8) : 2000);
-        note(`ntfy busy — retrying in ${Math.round(backoff/1000)}s (preview stays live)`, true);
-      } else if(!res.ok){
-        backoff = 0;
-        note(`send failed (${res.status})`, true);
-      } else {
-        backoff = 0;
-        sentCount++;
-        note(`sent ${sentCount} · ${new Date().toLocaleTimeString()}`);
-      }
-    })
-    .catch(() => {
-      if(pending === null) pending = body;
-      backoff = Math.min(30000, backoff ? Math.round(backoff * 1.8) : 2000);
-      note('offline — will retry', true);
-    })
-    .then(() => {
-      inFlight = false;
-      meter();
-      if(pending !== null) setTimeout(flush, backoff || 120);
-    });
+
+  const now = Date.now();
+  let targets = relayState.filter(r => r.nextTry <= now);
+  if(!targets.length) targets = relayState;      /* everything is resting: try anyway */
+
+  Promise.all(targets.map(r => postTo(r, body))).then(results => {
+    const delivered = results.some(Boolean);
+    if(delivered){
+      backoff = 0;
+      sentCount++;
+      const down = relayState.filter(r => r.ok === false).length;
+      note(down
+        ? `sent ${sentCount} · ${down} relay${down>1?'s':''} down, rest carried it`
+        : `sent ${sentCount} · ${new Date().toLocaleTimeString()}`);
+    } else {
+      if(pending === null) pending = body;        /* newer state wins if one arrived */
+      backoff = Math.min(20000, backoff ? Math.round(backoff * 1.8) : 1500);
+      note(`every relay refused — retrying in ${Math.round(backoff/1000)}s (preview stays live)`, true);
+    }
+  }).then(() => {
+    inFlight = false;
+    meter();
+    if(pending !== null) setTimeout(flush, backoff || 120);
+  });
 }
 
 function publish(force){
   persist();
   renderAll();
-  stamp();
-  /* the preview costs nothing, so mirror locally on every single change */
-  if(BC){ try{ BC.postMessage(state); }catch(e){} }
-  if(!TOPIC) return;
   const sig = visibleSig();
   if(!force && sig === lastSig) return;     /* nothing on screen would change */
   lastSig = sig;
   clearTimeout(sendTimer);
   sendTimer = setTimeout(() => {            /* coalesce a burst of clicks */
+    /* One stamp for everybody: the preview copy and the relay copies carry the
+       same sequence, so a display listening to both draws it once, not twice. */
     stamp();
+    if(BC){ try{ BC.postMessage(state); }catch(e){} }
+    if(!TOPIC) return;
     pending = JSON.stringify(state);
     meter();
     flush();
@@ -638,10 +675,29 @@ if(BC){
   };
 }
 
+/* Emergency hatch: a whole game state packed into the display URL. Paste it
+   into an OBS browser source and the right screen paints with no network at
+   all — frozen, but correct. */
+function frozenUrl(){
+  stamp();
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(state))))
+    .replace(/\+/g,'-').replace(/\//g,'_');
+  return `${location.origin}${location.pathname.replace('control.html','display.html')}`
+       + `?topic=${encodeURIComponent(TOPIC||'offline')}#s=${b64}`;
+}
+
 /* ============================================================
    CONNECTION
    ============================================================ */
+function scalePreview(){
+  const box = document.querySelector('.previewBox');
+  if(!box) return;
+  $('previewFrame').style.transform = `scale(${box.clientWidth / 1920})`;
+}
+window.addEventListener('resize', scalePreview);
+
 function loadPreview(){
+  scalePreview();
   if(!TOPIC){ $('previewFrame').src=''; $('previewPlaceholder').style.display='flex'; return; }
   $('previewPlaceholder').style.display = 'none';
   $('previewFrame').src = `display.html?topic=${encodeURIComponent(TOPIC)}&_=${Math.floor(Math.random()*1e9)}`;
@@ -659,6 +715,13 @@ function connect(){
 $('connectBtn').addEventListener('click', connect);
 $('refreshPreviewBtn').addEventListener('click', loadPreview);
 $('resyncBtn').addEventListener('click', () => publish(true));
+$('frozenBtn').addEventListener('click', () => {
+  const url = frozenUrl();
+  navigator.clipboard.writeText(url).then(() => {
+    $('frozenBtn').textContent = 'Copied!';
+    setTimeout(() => { $('frozenBtn').textContent = 'Backup URL'; }, 1600);
+  }).catch(() => prompt('Paste this into an OBS browser source if every relay is down:', url));
+});
 $('copyDisplayBtn').addEventListener('click', () => {
   const url = `${location.origin}${location.pathname.replace('control.html','display.html')}?topic=${encodeURIComponent(TOPIC)}`;
   navigator.clipboard.writeText(url).then(() => {
@@ -817,7 +880,7 @@ $('gotItBtn').addEventListener('click', () => {
   state.show.banner = true;
   state.show.roll = false;
   state.show.card = false;
-  $('pickBlock').style.display = 'block';
+  $('pickBlock').style.display = 'flex';
   $('rollBlock').style.display = 'none';
   renderPlayerList();
   publish();
@@ -829,7 +892,7 @@ $('missedBtn').addEventListener('click', () => {
   state.show.banner = true;
   state.show.card = false;
   $('pickBlock').style.display = 'none';
-  $('rollBlock').style.display = 'block';
+  $('rollBlock').style.display = 'flex';
   publish();
 });
 
@@ -1039,8 +1102,10 @@ function renderScout(){
 
 $('revealBtn').addEventListener('click', () => {
   if(!ui.pickId) return;
-  state.show.card = true;
-  state.show.roll = false;
+  /* the display hides the lineup whenever the card is up — they share the
+     right-hand side — so this button is really "big card vs board" */
+  state.show.card = !state.show.card;
+  if(state.show.card) state.show.roll = false;
   publish();
 });
 $('clearPickBtn').addEventListener('click', () => {
@@ -1084,7 +1149,7 @@ function renderLineup(){
     return `<tr>
       <td class="pos">${s}</td>
       <td>${p ? esc(e.nm || p.n) + (e.forced?' <span class="forced">🎲 FORCED</span>':'') : '<span class="empty">open</span>'}</td>
-      <td class="st">${p ? esc(e.st)+' — '+esc(sName(e.st)) : ''}</td>
+      <td class="st" title="${p ? esc(sName(e.st)) : ''}">${p ? esc(e.st) : ''}</td>
       <td class="war">${p ? war(p.w) : '—'}</td>
       <td>${p ? `<button class="ghost" data-rm="${s}">✕</button>` : ''}</td>
     </tr>`;
@@ -1264,10 +1329,11 @@ function renderAll(){
     $(id).classList.toggle('live', !!on);
     $(id).textContent = (on ? 'Hide ' : 'Show ') + noun;
   };
-  tog('showLineupBtn', state.show.lineup, 'Board on Display');
-  tog('showStripBtn',  state.show.strip,  'States Strip');
-  tog('showTimerBtn',  state.show.timer,  'Timer on Display');
-  $('revealBtn').textContent = state.show.card ? '📺 Card is on air' : '📺 Reveal Card on Display';
+  tog('showLineupBtn', state.show.lineup, 'Board');
+  tog('showStripBtn',  state.show.strip,  'States');
+  tog('showTimerBtn',  state.show.timer,  'Timer');
+  $('revealBtn').textContent = state.show.card ? '📺 Hide Card' : '📺 Show Card';
+  $('revealBtn').classList.toggle('live', !!state.show.card);
   $('showFinalBtn').classList.toggle('live', !!state.show.final);
 }
 
@@ -1295,10 +1361,12 @@ $('durSec').value = state.timer.dur % 60;
 if(ui.st){
   $('gotItBtn').disabled = false;
   $('missedBtn').disabled = false;
-  if(ui.verdict === true){ $('pickBlock').style.display='block'; renderPlayerList(); }
-  if(ui.verdict === false){ $('rollBlock').style.display='block'; }
+  if(ui.verdict === true){ $('pickBlock').style.display='flex'; renderPlayerList(); }
+  if(ui.verdict === false){ $('rollBlock').style.display='flex'; }
 }
 renderAll();
+meter();
+scalePreview();
 if(state.results.best) renderBestOut('');
 if(TOPIC) connect();
 

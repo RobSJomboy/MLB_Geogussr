@@ -15,8 +15,8 @@ Two pages, same as the Trade Deadline setup — you drive `control.html` from an
 
 | Page | What it is |
 |---|---|
-| [`control.html`](control.html) | Host panel. Timer, state picker, player search, scouting reports, random draws, lineup board, final results. |
-| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. Lineup board sits on the right as a vertical column; the player card and the random-draw spin share the space on the left. |
+| [`control.html`](control.html) | Host panel. Everything on one screen, no scrolling: timer and state grid on the left, player search and scouting report in the middle, lineup, final and live preview on the right. |
+| [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. The lineup board, the player card and the random-draw spin all share the right-hand side and take turns. |
 | [`index.html`](index.html) | Landing page with links to both. |
 | `players.js` | The data — 6,278 players. |
 
@@ -48,7 +48,6 @@ would be meaningless. Push to GitHub and turn on Pages (Settings → Pages → d
 3. *Got it:* search the state's players — the list is ranked by WAR, with position
    eligibility and career span. **Clicking a player puts his card straight on air**,
    so there's no second click between calling the name and showing the guy.
-   (*Reveal Card on Display* is still there to bring it back if you've hidden it.)
    *Missed it:* pick a draw pool and hit **🎲 ROLL** — the overlay runs the
    slot-machine spin and lands on the guy.
 4. Read the **scouting report** on the control page: bio, career line, accolades,
@@ -61,6 +60,14 @@ from there, hit **🎲 Wrong player — draw Top 25 WAR** in the *Got it* panel.
 wheel picks from that state's top 25 by WAR, the overlay explains why
 ("Right State, Wrong Player"), and the pick is marked forced. The state banner
 still reads **GOT IT**, because they did get the state.
+
+**The card takes over the right-hand side.** The player card, the random draw
+and the lineup board all live in the same place, so only one is up at a time.
+**Show Card** puts the player up big — a full-height portrait panel with the
+headshot, career WAR, stat line and accolades — and the lineup board steps
+aside for it. Hit it again (it reads **Hide Card**) and the board slides back.
+Locking a player in does the same thing automatically: the card eases off and
+the board returns with him on it.
 
 **The timer and the state banner trade places.** START brings the clock in and
 clears the old banner; clicking the state eases the clock off (resetting it to
@@ -124,35 +131,47 @@ cd build && python3 fetch_people.py && python3 build_pools.py && python3 fetch_s
 `fetch_people.py` needs `war_daily_bat.txt` and `war_daily_pitch.txt` from
 `https://www.baseball-reference.com/data/` in the same folder first.
 
-## Staying under the ntfy limit
+## Not going down mid-show
 
-The free ntfy.sh tier rate-limits by IP and a frozen overlay mid-show is not an
-option, so the traffic is engineered down to almost nothing:
+The overlay talks to **five independent ntfy servers at once**:
 
-- **The preview costs zero.** The preview iframe is driven over a
-  `BroadcastChannel`, not the topic — instant, free, and it doesn't count as a
-  second subscriber. OBS runs its own browser, so it's the only real subscriber.
-- **The overlay doesn't poll.** One long-lived SSE connection, and that's it.
-  ntfy sends a keepalive every 45s, so the overlay only spends a request when
-  that heartbeat actually goes missing (past 60s), or when a backgrounded OBS
-  source comes back. In normal operation: **one request at startup, then none.**
+```
+ntfy.sh   ntfy.envs.net   ntfy.mzte.de   ntfy.hostux.net   ntfy.adminforge.de
+```
+
+Every change is published to all of them and a send counts as delivered the
+moment **any one** accepts it. The overlay subscribes to all five and throws away
+the duplicates. One server rate-limiting you, timing out, or falling over is a
+non-event — during testing, four of the five were killed outright and the overlay
+never missed a beat. The dots next to the topic box show which relays are
+healthy, and the footer reads e.g. `4 sent · 5/5 relays`.
+
+Why this matters: ntfy's free tier rate-limits per IP, and those limits are *per
+host*. Five hosts means five independent budgets and five independent failures.
+
+Everything else is still tuned to keep usage tiny:
+
+- **The preview costs nothing.** The preview iframe runs over a
+  `BroadcastChannel`, not the network — instant, free, and it keeps working even
+  with every relay down.
+- **The overlay doesn't poll.** One long-lived stream per relay. They ping every
+  45s, so a request is only spent when that heartbeat actually goes missing.
 - **The control page only sends when the overlay's picture would change.**
-  Browsing players, fiddling with slots, or selecting someone before the reveal
-  costs nothing. Bursts of clicks coalesce into one message.
+  Browsing players or fiddling with slots before the reveal costs nothing, and
+  bursts of clicks coalesce into one message.
 - **The timer is never resynced on a loop.** The overlay counts down on its own,
   and every message carries an absolute deadline so a reloaded OBS source still
   lands on the right time.
 
-Measured on a full nine-round game: **the overlay makes 1 request, the control
-page around 45–60.** The anonymous budget replenishes roughly one request every
-five seconds, so there's a wide margin.
+Each message carries a clock-based sequence number, so the five copies of the
+same change are drawn once, not five times. If every relay somehow refuses at
+once, the message goes back in the queue and retries with backoff, always
+sending the newest state — nothing is lost and nothing freezes.
 
-If it somehow is hit anyway (a shared office IP, say), nothing is lost and
-nothing freezes: the message goes back in the queue and retries with backoff —
-2s, 4s, 8s — always sending the newest state, and the bottom bar tells you what's
-happening. The preview keeps working the whole time. The `ntfy: N sent` counter
-next to it shows exactly what you've spent, and **Force Resync** pushes the
-current state again if the overlay ever looks stale.
+**Last resort.** The **Backup URL** button copies a link with the entire game
+state packed into it. Paste that into an OBS browser source and the correct
+screen paints with no network at all — frozen, but right. Good for the moment
+something is badly wrong and you just need the graphic on screen.
 
 Topics are public to anyone who knows the name, which is why the random tail
 matters.

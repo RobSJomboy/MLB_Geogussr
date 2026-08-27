@@ -24,11 +24,15 @@
     --red:#e2453c;
     --ink:#f3f7fb;
 
-    /* one stage the player card and the lineup board take turns on */
-    --panelX:118px;
-    --panelY:404px;
-    --panelW:1160px;
-    --panelH:340px;
+    /* The player card and the random-draw spin take turns on one stage, over
+       on the right where the lineup board lives — the board steps aside for
+       them, so the card gets the full height to itself. */
+    --panelX:1084px;   /* 1920 - 56 right margin - 780 wide */
+    --panelY:140px;
+    --panelW:780px;
+    --panelH:800px;
+    --rollY:420px;
+    --rollH:300px;
     --enterX:150px;    /* arrives from the right */
     --exitX:-150px;    /* leaves to the left */
     --swap:cubic-bezier(.22,.92,.24,1);
@@ -131,107 +135,111 @@
   #verdict.good{ background:var(--green); box-shadow:0 8px 22px rgba(63,191,111,.45); }
   #verdict.bad{ background:var(--red); box-shadow:0 8px 22px rgba(226,69,60,.45); }
 
-  /* ==================== PLAYER CARD ==================== */
+  /* ==================== PLAYER CARD ====================
+     Tall portrait panel on the right. Photo across the top with the position
+     badge and the WAR chip riding on it, then the name and the numbers. */
   #card{
-    position:absolute; left:var(--panelX); top:var(--panelY); width:var(--panelW);
+    position:absolute; left:var(--panelX); top:var(--panelY);
+    width:var(--panelW); height:var(--panelH);
     opacity:0; transform:translateX(var(--enterX));
     transition:transform 700ms var(--swap), opacity 520ms ease;
   }
   #card.show{ opacity:1; transform:translateX(0); }
   #card.leaving{ opacity:0; transform:translateX(var(--exitX)); }
   #cardInner{
-    height:var(--panelH);
-    background:linear-gradient(135deg, var(--navy2) 0%, var(--navy) 62%);
-    border:4px solid var(--gold);
-    border-radius:22px;
-    box-shadow:0 22px 56px rgba(0,0,0,.6);
-    display:flex; overflow:hidden;
+    height:100%;
+    background:linear-gradient(165deg, var(--navy2) 0%, var(--navy) 66%);
+    border:5px solid var(--gold);
+    border-radius:26px;
+    box-shadow:0 26px 64px rgba(0,0,0,.65);
+    display:flex; flex-direction:column; overflow:hidden;
   }
   #shotWrap{
-    flex:0 0 300px; height:100%; position:relative;
+    /* explicit height, not just a flex-basis: the headshot below uses
+       height:100%, which only resolves against a definite height. Without it
+       the image renders at its own aspect ratio and shoves the name and stats
+       out of the clipped panel. */
+    flex:0 0 470px; height:470px; width:100%; position:relative; overflow:hidden;
     background:linear-gradient(180deg,#1c3b55,#0d1f2d);
-    border-right:4px solid var(--gold);
+    border-bottom:5px solid var(--gold);
   }
-  #shot{ width:300px; height:100%; object-fit:cover; object-position:top center; display:block; }
+  #shot{ width:100%; height:100%; object-fit:cover; object-position:center 12%; display:block; }
   #monogram{
     position:absolute; inset:0; display:none;
     align-items:center; justify-content:center;
-    font-family:'Bebas Neue',sans-serif; font-size:126px; color:rgba(251,204,122,.55);
+    font-family:'Bebas Neue',sans-serif; font-size:190px; color:rgba(251,204,122,.5);
   }
   #shotWrap.nopic #shot{ display:none; }
   #shotWrap.nopic #monogram{ display:flex; }
   #posBadge{
     position:absolute; left:0; bottom:0;
     background:var(--gold); color:var(--navy);
-    font-family:'Bebas Neue',sans-serif; font-size:40px; letter-spacing:2px;
-    padding:2px 18px 0; border-radius:0 12px 0 0;
-  }
-  #cardMain{ flex:1; padding:20px 30px 22px; min-width:0; }
-
-  #cardTop{ display:flex; align-items:flex-start; gap:16px; }
-  #cardName{
-    font-size:76px; line-height:.92; color:#fff; flex:1;
-    text-shadow:0 4px 12px rgba(0,0,0,.45);
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:2px;
+    padding:2px 26px 0; border-radius:0 14px 0 0;
   }
   #warChip{
-    flex:0 0 auto; text-align:center;
+    position:absolute; right:18px; bottom:18px; text-align:center;
     background:var(--gold); color:var(--navy);
-    border-radius:14px; padding:6px 22px 8px;
-    box-shadow:0 8px 20px rgba(0,0,0,.4);
+    border-radius:16px; padding:8px 26px 10px;
+    box-shadow:0 10px 26px rgba(0,0,0,.55);
   }
-  #warChip .num{ font-family:'Bebas Neue',sans-serif; font-size:62px; line-height:.9; display:block; }
-  #warChip .lbl{ font-size:16px; font-weight:700; letter-spacing:4px; text-transform:uppercase; }
+  #warChip .num{ font-family:'Bebas Neue',sans-serif; font-size:70px; line-height:.86; display:block; }
+  #warChip .lbl{ font-size:15px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
 
+  #cardMain{ flex:1 1 auto; padding:18px 26px 20px; min-width:0; display:flex; flex-direction:column; }
+  #cardTop{ display:block; }
+  #cardName{
+    font-size:74px; line-height:.92; color:#fff;
+    text-shadow:0 4px 12px rgba(0,0,0,.45);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
   #cardMeta{
-    margin-top:4px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-    color:var(--gold); font-size:27px; font-weight:500;
+    margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    color:var(--gold); font-size:23px; font-weight:500;
   }
   #cardMeta .dot{ opacity:.45; }
   #cardMeta .st{
     background:rgba(251,204,122,.16); border:2px solid var(--gold);
-    color:var(--gold); border-radius:8px; padding:1px 12px 3px;
-    font-family:'Bebas Neue',sans-serif; font-size:29px; letter-spacing:2px;
+    color:var(--gold); border-radius:8px; padding:1px 11px 3px;
+    font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:2px;
   }
 
-  #statLine{
-    margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;
-  }
+  #statLine{ margin-top:13px; display:flex; gap:8px; flex-wrap:wrap; }
   .stat{
     background:rgba(255,255,255,.07);
     border:1px solid rgba(251,204,122,.35);
-    border-radius:10px; padding:5px 15px 7px; text-align:center; min-width:88px;
+    border-radius:10px; padding:5px 13px 7px; text-align:center; min-width:84px;
   }
-  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:35px; color:#fff; line-height:1; display:block; }
-  .stat .k{ font-size:14px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:700; }
+  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:33px; color:#fff; line-height:1; display:block; }
+  .stat .k{ font-size:13px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:700; }
 
-  #accolades{ margin-top:13px; display:flex; gap:9px; flex-wrap:wrap; align-items:center; }
+  #accolades{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .acc{
     background:rgba(251,204,122,.16); border:1px solid rgba(251,204,122,.5);
-    color:#ffe6bb; font-size:19px; font-weight:500;
-    border-radius:20px; padding:3px 15px 5px;
+    color:#ffe6bb; font-size:18px; font-weight:500;
+    border-radius:20px; padding:3px 14px 5px;
   }
   .acc.hof{ background:var(--gold); color:var(--navy); font-weight:700; border-color:#fff; }
 
   #forcedFlag{
-    margin-top:12px; display:none; align-items:center; gap:12px;
+    margin-top:auto; display:none; align-items:center; gap:10px;
     background:rgba(226,69,60,.2); border-left:6px solid var(--red);
-    padding:7px 18px; border-radius:0 8px 8px 0;
-    color:#ffb3ad; font-size:24px; font-weight:700; letter-spacing:1px;
+    padding:7px 16px; border-radius:0 8px 8px 0;
+    color:#ffb3ad; font-size:21px; font-weight:700; letter-spacing:1px;
   }
   #card.forced #forcedFlag{ display:flex; }
 
   /* ==================== RANDOM ROLL ==================== */
   #roll{
-    position:absolute; left:var(--panelX); top:var(--panelY);
-    width:var(--panelW); height:var(--panelH);
+    position:absolute; left:var(--panelX); top:var(--rollY);
+    width:var(--panelW); height:var(--rollH);
     opacity:0; transform:translateX(var(--enterX));
     transition:transform 700ms var(--swap), opacity 520ms ease;
   }
   #roll.show{ opacity:1; transform:translateX(0); }
   #roll.leaving{ opacity:0; transform:translateX(var(--exitX)); }
   #rollInner{
-    height:var(--panelH);
+    height:var(--rollH);
     background:linear-gradient(135deg,#3a1414 0%, var(--navy) 70%);
     border:4px solid var(--red);
     border-radius:22px;
@@ -240,21 +248,22 @@
     overflow:hidden; position:relative;
   }
   #rollKicker{
-    font-size:30px; letter-spacing:7px; color:#ff9a92; text-transform:uppercase; font-weight:700;
+    font-size:17px; letter-spacing:3px; color:#ff9a92; text-transform:uppercase;
+    font-weight:700; text-align:center; padding:0 20px; line-height:1.3;
   }
   #rollWindow{
-    margin-top:6px; height:126px; width:100%;
+    margin-top:6px; height:92px; width:100%;
     display:flex; align-items:center; justify-content:center;
     position:relative; overflow:hidden;
   }
   #rollName{
-    font-family:'Bebas Neue',sans-serif; font-size:104px; color:#fff; line-height:1;
+    font-family:'Bebas Neue',sans-serif; font-size:62px; color:#fff; line-height:1;
     text-shadow:0 5px 18px rgba(0,0,0,.55); white-space:nowrap;
     padding:0 40px; text-align:center;
   }
   #roll.spinning #rollName{ opacity:.92; filter:blur(.6px); }
-  #rollSub{ font-size:27px; color:#ffcdc8; letter-spacing:2px; }
-  #rollIdx{ margin-top:8px; font-family:'DM Mono',monospace; font-size:22px; color:rgba(255,255,255,.5); }
+  #rollSub{ font-size:22px; color:#ffcdc8; letter-spacing:2px; }
+  #rollIdx{ margin-top:6px; font-family:'DM Mono',monospace; font-size:17px; color:rgba(255,255,255,.5); }
   #roll.landed #rollInner{ border-color:var(--gold); animation:landPop 480ms cubic-bezier(.2,1.5,.3,1); }
   #roll.landed #rollName{ color:var(--gold); }
   @keyframes landPop{ 0%{transform:scale(1);} 40%{transform:scale(1.045);} 100%{transform:scale(1);} }
@@ -464,11 +473,11 @@
         <img id="shot" src="" alt="">
         <div id="monogram" class="bebas">?</div>
         <div id="posBadge">CF</div>
+        <div id="warChip"><span class="num bebas">0.0</span><span class="lbl">Career WAR</span></div>
       </div>
       <div id="cardMain">
         <div id="cardTop">
           <div id="cardName" class="bebas">Player Name</div>
-          <div id="warChip"><span class="num bebas">0.0</span><span class="lbl">Career WAR</span></div>
         </div>
         <div id="cardMeta"></div>
         <div id="statLine"></div>
@@ -691,7 +700,7 @@ function renderCard(c){
   posBadge.textContent = c.slot || p.p;
   const shown = nameOf(p, c);
   cardName.textContent = shown;
-  cardName.style.fontSize = shown.length > 19 ? '58px' : (shown.length > 15 ? '66px' : '76px');
+  fitText(cardName, 74, 40, 728);
   warChip.querySelector('.num').textContent = war(p.w);
 
   const bits = [];
@@ -738,6 +747,7 @@ function runRoll(r){
   let i = 0, elapsed = 0, gap = 60;
   const spin = () => {
     rollName.textContent = pool[i % pool.length].n;
+    fitText(rollName, 62, 30, 700);
     i++;
     elapsed += gap;
     tone(1200 + (i%5)*90, .03, .07, 'sine');
@@ -752,6 +762,7 @@ function land(p, r){
   roll.classList.remove('spinning');
   roll.classList.add('landed');
   rollName.textContent = nameOf(p, null);
+  fitText(rollName, 62, 30, 700);
   rollSub.textContent = `${p.p} • ${war(p.w)} career WAR`;
   rollIdx.textContent = r && r.idx ? `#${r.idx} of ${r.of} born in ${stateName(r.st)}` : '';
   tone(660, .12, .2); setTimeout(()=>tone(990,.28,.22), 130);
@@ -843,6 +854,17 @@ function renderFinal(s){
     : `They nailed it — <b>best possible team</b>`;
 }
 
+/* Step type down until it fits the space it has. Used for the card name and
+   the roll readout, which both live in a 780px column now. */
+function fitText(el, start, min, budget){
+  let size = start;
+  el.style.fontSize = size + 'px';
+  while(size > min && el.scrollWidth > budget){
+    size -= 2;
+    el.style.fontSize = size + 'px';
+  }
+}
+
 /* Long names ("District of Columbia") would otherwise push the banner into the
    timer, so step the type down until the whole box fits its 600px budget. */
 function fitBanner(){
@@ -887,6 +909,24 @@ function setStage(next){
     }));
   }
 }
+
+/* Chrome freezes transitions while the document is hidden, so a panel that
+   started moving while the OBS scene was off-air can come back stuck halfway.
+   When the source becomes visible again, snap the stage into its settled state
+   instead of leaving a half-faded card on screen. */
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  const want = stageNow;
+  Object.keys(PANELS).forEach(k => {
+    const el = PANELS[k];
+    el.style.transition = 'none';
+    el.classList.remove('leaving');
+    el.classList.toggle('show', k === want);
+  });
+  requestAnimationFrame(() => {
+    Object.keys(PANELS).forEach(k => { PANELS[k].style.transition = ''; });
+  });
+});
 
 /* ============================================================
    APPLY STATE
@@ -949,8 +989,11 @@ function applyState(s, catchUp){
   const wantCard = !!show.card && !!(s.card && s.card.id);
   const wantRoll = !!show.roll;
   /* one at a time, in priority order — a roll or a reveal outranks the board */
-  setStage(wantRoll ? 'roll' : (wantCard ? 'card' : ''));
-  board.classList.toggle('show', !!show.lineup);
+  const stage = wantRoll ? 'roll' : (wantCard ? 'card' : '');
+  setStage(stage);
+  /* card and board share the right side, so whichever is on stage wins and the
+     lineup steps aside — that's what the Show Card button is really doing */
+  board.classList.toggle('show', !!show.lineup && !stage);
 
   renderStrip(s);
   strip.classList.toggle('show', !!show.strip);
@@ -963,19 +1006,42 @@ function applyState(s, catchUp){
 /* ============================================================
    SYNC
 
-   Two ways in, and the cheap one is preferred:
+   The show cannot go down because one server is having a bad night, so the
+   overlay listens to several ntfy instances at once. Each publish goes to all
+   of them; whichever copy arrives first wins and the rest are dropped by
+   sequence number. One relay 429ing, timing out, or vanishing entirely is
+   invisible here.
 
-   * BroadcastChannel — free, instant, same browser. This is how the control
-     page's preview iframe is driven, so the preview costs zero ntfy requests.
-   * ntfy topic — for OBS, which runs its own browser and can't hear the
-     channel. One long-lived SSE connection, and that's it: ntfy keepalives
-     arrive every 45s, so we only spend a request when that heartbeat actually
-     goes missing. No periodic polling, which is what quietly eats the
-     anonymous rate limit over a long show.
+   BroadcastChannel is preferred where it works (the control page's preview
+   iframe) — free, instant, and no server involved at all.
    ============================================================ */
+const RELAYS = [
+  'https://ntfy.sh',
+  'https://ntfy.envs.net',
+  'https://ntfy.mzte.de',
+  'https://ntfy.hostux.net',
+  'https://ntfy.adminforge.de'
+];
+
 const IN_FRAME = window.parent !== window;
-let es = null, lastMsgAt = Date.now(), firstPaint = true;
+let lastMsgAt = Date.now(), firstPaint = true;
+let lastSeq = 0;                      /* highest state we've already drawn */
 let sincePoll = Math.floor(Date.now()/1000);
+const streams = new Map();            /* relay -> EventSource */
+
+/* Every relay delivers its own copy of the same change. The payload carries a
+   clock-based seq, so anything at or below what we've drawn is a duplicate.
+   (Clock-based, not a counter: a counter would restart at 1 when the control
+   page reloads and we'd ignore everything until it caught up.) */
+function accept(st, catchUp){
+  if(!st) return;
+  const seq = +st.seq || 0;
+  if(seq && seq <= lastSeq) return;   /* already drew this one */
+  if(seq) lastSeq = seq;
+  lastMsgAt = Date.now();
+  applyState(st, catchUp === undefined ? firstPaint : catchUp);
+  firstPaint = false;
+}
 
 /* local channel — always listen, it never costs anything */
 let BC = null;
@@ -984,39 +1050,44 @@ try{
   BC.onmessage = ev => {
     const d = ev.data;
     if(!d || d.__req) return;
-    lastMsgAt = Date.now();
-    applyState(d, firstPaint);
-    firstPaint = false;
+    accept(d);
   };
 }catch(e){}
 
 function handleEnvelope(env){
   lastMsgAt = Date.now();
   if(env && env.message){
-    try{ applyState(JSON.parse(env.message), firstPaint); firstPaint = false; }catch(e){}
+    try{ accept(JSON.parse(env.message)); }catch(e){}
   }
 }
 
-function connect(){
+function connectRelay(host){
   if(!TOPIC || IN_FRAME) return;
-  if(es) es.close();
-  es = new EventSource(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/sse`);
-  es.onmessage = ev => { try{ handleEnvelope(JSON.parse(ev.data)); }catch(e){} };
-  es.onerror = () => {};
+  const old = streams.get(host);
+  if(old){ try{ old.close(); }catch(e){} }
+  try{
+    const es = new EventSource(`${host}/${encodeURIComponent(TOPIC)}/sse`);
+    es.onmessage = ev => { try{ handleEnvelope(JSON.parse(ev.data)); }catch(e){} };
+    es.onerror = () => {};            /* the browser retries; the watchdog covers stalls */
+    streams.set(host, es);
+  }catch(e){}
 }
+function connect(){ RELAYS.forEach(connectRelay); }
 
 async function pollOnce(){
   if(!TOPIC || IN_FRAME) return;
   const from = sincePoll;
   sincePoll = Math.floor(Date.now()/1000);
-  try{
-    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=${from}`);
-    if(res.status === 429) return;                 /* back off, the heartbeat check will retry */
-    const text = await res.text();
-    text.split('\n').filter(Boolean).forEach(line => {
-      try{ handleEnvelope(JSON.parse(line)); }catch(e){}
-    });
-  }catch(e){}
+  /* ask every relay at once and take whatever comes back — dedupe sorts it out */
+  await Promise.all(RELAYS.map(async host => {
+    try{
+      const res = await fetch(`${host}/${encodeURIComponent(TOPIC)}/json?poll=1&since=${from}`);
+      if(!res.ok) return;
+      (await res.text()).split('\n').filter(Boolean).forEach(line => {
+        try{ handleEnvelope(JSON.parse(line)); }catch(e){}
+      });
+    }catch(e){}
+  }));
 }
 
 if(IN_FRAME){
@@ -1025,39 +1096,52 @@ if(IN_FRAME){
 } else {
   connect();
 
-  /* Heartbeat, not a timer. ntfy pings every 45s; past 60s of true silence
-     something is wrong, so spend one poll to catch up, and past 95s rebuild
-     the stream. In normal operation this costs nothing at all. */
+  /* Heartbeat, not a timer. Every relay pings about every 45s, so past 60s of
+     silence from all of them something is wrong: spend one round of polls to
+     catch up, and past 95s rebuild the streams. In normal operation this costs
+     nothing at all. */
   setInterval(() => {
     const quiet = Date.now() - lastMsgAt;
     if(quiet > 95000){ connect(); lastMsgAt = Date.now(); pollOnce(); }
     else if(quiet > 60000){ pollOnce(); }
   }, 15000);
 
-  /* a backgrounded OBS source can have its stream suspended — catch up on return */
+  /* a backgrounded OBS source can have its streams suspended — catch up on return */
   document.addEventListener('visibilitychange', () => {
     if(!document.hidden && Date.now() - lastMsgAt > 20000) pollOnce();
   });
 
   /* Pull the last known state on load so a refreshed OBS source comes back
-     exactly where the show is, not blank. */
+     exactly where the show is, not blank. First relay to answer wins. */
   (async () => {
     if(!TOPIC) return;
-    try{
-      const res = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=6h`);
-      const lines = (await res.text()).split('\n').filter(Boolean);
-      if(lines.length){
-        const last = JSON.parse(lines[lines.length-1]);
+    await Promise.all(RELAYS.map(async host => {
+      try{
+        const res = await fetch(`${host}/${encodeURIComponent(TOPIC)}/json?poll=1&since=12h`);
+        if(!res.ok) return;
+        const lines = (await res.text()).split('\n').filter(Boolean);
+        if(!lines.length) return;
+        const last = JSON.parse(lines[lines.length - 1]);
         if(last && last.message){
           const st = JSON.parse(last.message);
           st.roll = st.roll || {};
           lastRollNonce = st.roll.nonce;     /* don't replay an old spin on reload */
-          applyState(st, true);
-          firstPaint = false;
+          accept(st, true);
         }
-      }
-    }catch(e){}
+      }catch(e){}
+    }));
   })();
+
+  /* Last resort: a full state can be pasted into the URL as #s=<base64>, which
+     paints the right screen with no network at all. */
+  try{
+    const frag = location.hash.match(/[#&]s=([^&]+)/);
+    if(frag){
+      const st = JSON.parse(decodeURIComponent(escape(atob(frag[1].replace(/-/g,'+').replace(/_/g,'/')))));
+      st.seq = st.seq || 1;
+      accept(st, true);
+    }
+  }catch(e){}
 }
 
 /* arm audio */
