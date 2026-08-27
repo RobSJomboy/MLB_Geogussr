@@ -113,6 +113,7 @@ for pid, rec in sel.items():
         'ht': rec['ht'],
         'wt': rec['wt'],
         'br': rec.get('br', ''),
+        'tm': rec.get('tm', []),
         'bd': rec['bd'],
         'dd': rec['died'],
     }

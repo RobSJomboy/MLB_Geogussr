@@ -13,6 +13,7 @@ pa = defaultdict(int)
 ipouts = defaultdict(int)
 years = defaultdict(set)
 brid = {}                          # mlb_ID -> baseball-reference player id
+team_years = defaultdict(lambda: defaultdict(set))   # mlb_ID -> team -> {years}
 peak = defaultdict(lambda: (0.0, ''))   # best single season
 
 def num(v):
@@ -43,6 +44,9 @@ def load(path, is_pitch):
                 pa[mid] += int(num(row.get('PA')))
             if yr:
                 years[mid].add(yr)
+            tm = (row.get('team_ID') or '').strip()
+            if tm and tm != 'NULL' and yr.isdigit():
+                team_years[mid][tm].add(int(yr))
             n += 1
     print(f'{path}: {n} season-stints', file=sys.stderr)
 
@@ -61,6 +65,21 @@ for path, in (('war_bat.txt',), ('war_pitch.txt',)):
 for mid, ys in season_war.items():
     y, w = max(ys.items(), key=lambda kv: kv[1])
     peak[mid] = (round(w, 1), y)
+
+def span(ys):
+    a, b = min(ys), max(ys)
+    if a == b:
+        return str(a)
+    # short end year unless the century turned over: 1920-34, but 1998-2003
+    return f'{a}-{b % 100:02d}' if a // 100 == b // 100 else f'{a}-{b}'
+
+def team_list(mid):
+    tms = team_years.get(mid)
+    if not tms:
+        return []
+    # chronological by first season, longest stint first on ties
+    ordered = sorted(tms.items(), key=lambda kv: (min(kv[1]), -len(kv[1])))
+    return [f'{t} {span(ys)}' for t, ys in ordered][:10]
 
 print(f'WAR records for {len(war)} mlb_IDs', file=sys.stderr)
 
@@ -110,6 +129,7 @@ for pid, p in people.items():
     rec['seasons'] = len(years.get(pid, ()))
     rec['hasWar'] = pid in war
     rec['br'] = brid.get(pid, '')
+    rec['tm'] = team_list(pid)
     by_state[st].append(rec)
 
 print('\nunmatched birth states (top 15):', file=sys.stderr)

@@ -30,7 +30,7 @@
     --panelX:1084px;   /* 1920 - 56 right margin - 780 wide */
     --panelY:140px;
     --panelW:780px;
-    --panelH:800px;
+    --panelH:840px;
     --rollY:420px;
     --rollH:300px;
     --enterX:150px;    /* arrives from the right */
@@ -159,7 +159,7 @@
        height:100%, which only resolves against a definite height. Without it
        the image renders at its own aspect ratio and shoves the name and stats
        out of the clipped panel. */
-    flex:0 0 470px; height:470px; width:100%; position:relative; overflow:hidden;
+    flex:0 0 370px; height:370px; width:100%; position:relative; overflow:hidden;
     background:linear-gradient(180deg,#1c3b55,#0d1f2d);
     border-bottom:5px solid var(--gold);
   }
@@ -193,31 +193,61 @@
     text-shadow:0 4px 12px rgba(0,0,0,.45);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  #cardMeta{
-    margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    color:var(--gold); font-size:23px; font-weight:500;
+  /* where he's from is the whole point of the game, so it gets its own line */
+  #cardFrom{
+    margin-top:5px; display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;
+    font-size:27px; color:#fff; font-weight:500; line-height:1.15;
   }
-  #cardMeta .dot{ opacity:.45; }
-  #cardMeta .st{
-    background:rgba(251,204,122,.16); border:2px solid var(--gold);
-    color:var(--gold); border-radius:8px; padding:1px 11px 3px;
-    font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:2px;
+  #cardFrom .lbl{
+    font-size:14px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    color:var(--gold); flex:0 0 auto;
   }
+  #cardYears{
+    margin-top:3px; display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    color:var(--gold); font-size:19px; font-weight:500;
+  }
+  #cardYears .dot{ opacity:.45; }
 
-  #statLine{ margin-top:13px; display:flex; gap:8px; flex-wrap:wrap; }
+  #cardTeams{
+    margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;
+    max-height:70px; overflow:hidden;   /* two rows, whatever he did */
+  }
+  .team{
+    background:rgba(255,255,255,.08); border:1px solid rgba(251,204,122,.4);
+    border-radius:7px; padding:2px 10px 4px; white-space:nowrap;
+    color:#fff; font-size:17px; font-weight:700; letter-spacing:.3px;
+  }
+  .team b{ font-family:'Bebas Neue',sans-serif; font-size:21px; letter-spacing:1px; color:var(--gold); margin-right:5px; }
+
+  #cardPeak{
+    margin-top:8px; display:none; align-items:baseline; gap:8px;
+    background:rgba(251,204,122,.13); border-left:5px solid var(--gold);
+    padding:3px 12px 5px; border-radius:0 7px 7px 0; align-self:flex-start;
+  }
+  #cardPeak.on{ display:flex; }
+  #cardPeak .lbl{ font-size:13px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--gold); }
+  #cardPeak .v{ font-family:'Bebas Neue',sans-serif; font-size:27px; color:#fff; }
+
+  #statLine{
+    margin-top:9px; display:flex; gap:6px; flex-wrap:wrap;
+    max-height:92px; overflow:hidden;   /* two rows */
+  }
   .stat{
     background:rgba(255,255,255,.07);
     border:1px solid rgba(251,204,122,.35);
-    border-radius:10px; padding:5px 13px 7px; text-align:center; min-width:84px;
+    border-radius:9px; padding:3px 10px 5px; text-align:center; min-width:74px;
   }
-  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:33px; color:#fff; line-height:1; display:block; }
-  .stat .k{ font-size:13px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:700; }
+  .stat .v{ font-family:'Bebas Neue',sans-serif; font-size:29px; color:#fff; line-height:1; display:block; }
+  .stat .k{ font-size:11px; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; font-weight:700; }
 
-  #accolades{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  #accolades{
+    margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+    max-height:30px; overflow:hidden;   /* one row */
+  }
   .acc{
     background:rgba(251,204,122,.16); border:1px solid rgba(251,204,122,.5);
-    color:#ffe6bb; font-size:18px; font-weight:500;
-    border-radius:20px; padding:3px 14px 5px;
+    color:#ffe6bb; font-size:16px; font-weight:500;
+    border-radius:20px; padding:2px 12px 4px;
   }
   .acc.hof{ background:var(--gold); color:var(--navy); font-weight:700; border-color:#fff; }
 
@@ -479,8 +509,11 @@
         <div id="cardTop">
           <div id="cardName" class="bebas">Player Name</div>
         </div>
-        <div id="cardMeta"></div>
+        <div id="cardFrom"></div>
+        <div id="cardYears"></div>
+        <div id="cardTeams"></div>
         <div id="statLine"></div>
+        <div id="cardPeak"><span class="lbl">Best Season</span><span class="v bebas"></span></div>
         <div id="accolades"></div>
         <div id="forcedFlag">🎲 Forced pick — they missed the state</div>
       </div>
@@ -528,7 +561,7 @@
 
 </div>
 
-<script src="players.js"></script>
+<script src="players.js?v=2026-08-27b"></script>
 <script>
 /* ============================================================
    Talkin' Baseball — Geoguessr Lineup DISPLAY (OBS overlay)
@@ -563,7 +596,8 @@ const timerWrap=$('timerWrap'), timerClock=$('timerClock'), timerBox=$('timerBox
 const banner=$('banner'), bannerState=$('bannerState'), verdict=$('verdict'), bannerKicker=$('bannerKicker');
 const roll=$('roll'), rollName=$('rollName'), rollIdx=$('rollIdx'), rollKicker=$('rollKicker'), rollSub=$('rollSub');
 const card=$('card'), shot=$('shot'), shotWrap=$('shotWrap'), monogram=$('monogram'), posBadge=$('posBadge');
-const cardName=$('cardName'), warChip=$('warChip'), cardMeta=$('cardMeta'), statLine=$('statLine'), accolades=$('accolades');
+const cardName=$('cardName'), warChip=$('warChip'), statLine=$('statLine'), accolades=$('accolades');
+const cardFrom=$('cardFrom'), cardYears=$('cardYears'), cardTeams=$('cardTeams'), cardPeak=$('cardPeak');
 const board=$('board'), boardBody=$('boardBody'), boardTeam=$('boardTeam'), boardTotal=$('boardTotal');
 const strip=$('strip'), final=$('final'), finalTeam=$('finalTeam'), finalGrade=$('finalGrade');
 const finalBigNum=document.querySelector('#finalBig .num');
@@ -660,34 +694,25 @@ setInterval(() => {
    PLAYER CARD
    ============================================================ */
 function statChips(p){
-  const out = [];
-  const push = (k,v) => { if(v != null && v !== '' && v !== '-') out.push(`<div class="stat"><span class="v">${esc(v)}</span><span class="k">${k}</span></div>`); };
+  const chip = (k,v) => (v == null || v === '' || v === '-')
+    ? null : `<div class="stat"><span class="v">${esc(v)}</span><span class="k">${k}</span></div>`;
+  const hit = () => { const s = p.h; if(!s) return [];
+    return [chip('AVG',s.avg), chip('HR',s.hr), chip('RBI',s.rbi), chip('H',s.h),
+            chip('R',s.r), chip('SB',s.sb), chip('OPS',s.ops), chip('OBP',s.obp),
+            chip('SLG',s.slg)].filter(Boolean); };
+  const pitch = () => { const s = p.pi; if(!s) return [];
+    return [chip('W-L', `${s.w||0}-${s.l||0}`), chip('ERA',s.era), chip('IP',s.ip),
+            chip('SO',s.so), chip('WHIP',s.whip), chip('SV',s.sv), chip('GS',s.gs),
+            chip('CG',s.cg), chip('SHO',s.sho)].filter(Boolean); };
+
   const isP = p.p === 'P';
-  if(isP && p.pi){
-    const s = p.pi;
-    push('W-L', `${s.w||0}-${s.l||0}`);
-    push('ERA', s.era);
-    push('IP', s.ip);
-    push('SO', s.so);
-    push('WHIP', s.whip);
-    if(s.sv) push('SV', s.sv);
-  }
-  if(!isP && p.h){
-    const s = p.h;
-    push('AVG', s.avg);
-    push('HR', s.hr);
-    push('RBI', s.rbi);
-    push('H', s.h);
-    push('OPS', s.ops);
-    if(s.sb >= 100) push('SB', s.sb);
-  }
-  /* two-way guys (Ruth, Ohtani): show the other side too */
-  if(isP && p.h && (p.h.hr||0) >= 40){
-    push('AVG', p.h.avg); push('HR', p.h.hr);
-  } else if(!isP && p.pi && (p.pi.w||0) >= 20){
-    push('W-L', `${p.pi.w}-${p.pi.l}`); push('ERA', p.pi.era);
-  }
-  return out.slice(0, 7).join('');   /* one row — the card is 1160px wide */
+  const mine  = isP ? pitch() : hit();
+  const other = isP ? hit() : pitch();
+  /* Ruth and Ohtani earned both lines; everyone else gets one clean row */
+  const twoWay = isP ? (p.h && (p.h.hr||0) >= 25) : (p.pi && (p.pi.w||0) >= 15);
+  return twoWay
+    ? mine.slice(0, 6).concat(other.slice(0, 4)).join('')
+    : mine.slice(0, 9).join('');
 }
 
 function renderCard(c){
@@ -703,13 +728,33 @@ function renderCard(c){
   fitText(cardName, 74, 40, 728);
   warChip.querySelector('.num').textContent = war(p.w);
 
-  const bits = [];
-  bits.push(`<span class="st">${esc(c.st || p._st)}</span>`);
-  if(p.c) bits.push(esc(p.c));
-  if(p.y) bits.push(`<span class="dot">•</span>` + esc(p.y));
-  if(p.sn) bits.push(`<span class="dot">•</span>` + p.sn + (p.sn===1?' season':' seasons'));
-  if(p.b && p.t) bits.push(`<span class="dot">•</span>` + `Bats ${esc(p.b)} / Throws ${esc(p.t)}`);
-  cardMeta.innerHTML = bits.join(' ');
+  /* where he's from — the whole reason he's on this team */
+  const place = [p.c, stateName(c.st || p._st)].filter(Boolean).join(', ');
+  cardFrom.innerHTML = `<span class="lbl">From</span>${esc(place)}`;
+
+  /* career span, seasons, handedness */
+  const yrs = [];
+  if(p.y) yrs.push(esc(p.y.replace('-', '–')));
+  if(p.sn) yrs.push(p.sn + (p.sn === 1 ? ' season' : ' seasons'));
+  if(p.b && p.t) yrs.push(`Bats ${esc(p.b)} / Throws ${esc(p.t)}`);
+  cardYears.innerHTML = yrs.join(' <span class="dot">•</span> ');
+
+  /* every club he played for, in order */
+  const tms = p.tm || [];
+  cardTeams.innerHTML = tms.slice(0, 5).map(t => {
+    const i = t.indexOf(' ');
+    const club = i < 0 ? t : t.slice(0, i);
+    const when = i < 0 ? '' : t.slice(i + 1);
+    return `<span class="team"><b>${esc(club)}</b>${esc(when)}</span>`;
+  }).join('') + (tms.length > 5 ? `<span class="team">+${tms.length - 5} more</span>` : '');
+
+  /* best single season */
+  if(p.pk){
+    cardPeak.classList.add('on');
+    cardPeak.querySelector('.v').textContent = `${war(p.pk)} WAR${p.pky ? ' in ' + p.pky : ''}`;
+  } else {
+    cardPeak.classList.remove('on');
+  }
 
   statLine.innerHTML = statChips(p);
 
@@ -717,8 +762,7 @@ function renderCard(c){
   if(p.hof) acc.push(`<span class="acc hof">★ Hall of Fame</span>`);
   (p.aw||[]).forEach(a => acc.push(`<span class="acc">${esc(a)}</span>`));
   if(p.ws) acc.push(`<span class="acc">${p.ws===1?'World Series champ':p.ws+'× World Series'}</span>`);
-  if(p.pk) acc.push(`<span class="acc">Peak ${war(p.pk)} WAR${p.pky?' ('+esc(p.pky)+')':''}</span>`);
-  accolades.innerHTML = acc.slice(0,7).join('');
+  accolades.innerHTML = acc.slice(0, 4).join('');
 
   card.classList.toggle('forced', !!c.forced);
 }

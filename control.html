@@ -167,6 +167,12 @@
   }
   #scoutWar .num{ font-family:'Bebas Neue',sans-serif; font-size:24px; line-height:.9; display:block; }
   #scoutWar .lbl{ font-size:8px; font-weight:700; letter-spacing:1.5px; }
+  #scoutTeams{ display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
+  #scoutTeams .t{
+    background:rgba(255,255,255,.07); border:1px solid rgba(251,204,122,.35);
+    border-radius:4px; padding:1px 7px 2px; font-size:10.5px; color:#dfe9f2; white-space:nowrap;
+  }
+  #scoutTeams .t b{ color:var(--gold); font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:.5px; margin-right:4px; }
   #scoutStats{ display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
   #scoutStats .s{
     background:#0b1a28; border:1px solid var(--line); border-radius:4px;
@@ -358,6 +364,7 @@
         </div>
         <div id="scoutWar"><span class="num bebas">0.0</span><span class="lbl">WAR</span></div>
       </div>
+      <div id="scoutTeams"></div>
       <div id="scoutStats"></div>
       <div id="scoutAcc"></div>
       <div id="scoutForced">🎲 Forced pick — they missed</div>
@@ -435,7 +442,7 @@
   <span class="hint" id="saveHint"></span>
 </div>
 
-<script src="players.js"></script>
+<script src="players.js?v=2026-08-27b"></script>
 <script>
 /* ============================================================
    Talkin' Baseball — Geoguessr Lineup CONTROL
@@ -1024,6 +1031,7 @@ function bioText(p){
   s = s.charAt(0).toUpperCase() + s.slice(1);
   if(p.y) s += ` Played ${p.y.replace('-','–')}${p.sn ? `, ${p.sn} season${p.sn>1?'s':''}` : ''}.`;
   if(p.pk) s += ` Best year: ${war(p.pk)} WAR in ${p.pky}.`;
+  if((p.tm||[]).length > 1) s += ` ${p.tm.length} clubs.`;
   const others = p.e.filter(e => e !== p.p);
   if(others.length) s += ` Also played ${others.join(', ')}.`;
   return s;
@@ -1064,6 +1072,10 @@ function renderScout(){
   $('scoutLine').innerHTML = bits.filter(Boolean).join(' &nbsp;•&nbsp; ');
   $('scoutBio').textContent = bioText(p);
   $('scoutWar').querySelector('.num').textContent = war(p.w);
+  $('scoutTeams').innerHTML = (p.tm || []).map(t => {
+    const i = t.indexOf(' ');
+    return `<span class="t"><b>${esc(i<0?t:t.slice(0,i))}</b>${esc(i<0?'':t.slice(i+1))}</span>`;
+  }).join('');
   $('scoutStats').innerHTML = statChips(p);
   const acc = [];
   if(p.hof) acc.push(`<span class="a hof">★ Hall of Fame</span>`);

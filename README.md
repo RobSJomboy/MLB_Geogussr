@@ -63,9 +63,22 @@ still reads **GOT IT**, because they did get the state.
 
 **The card takes over the right-hand side.** The player card, the random draw
 and the lineup board all live in the same place, so only one is up at a time.
-**Show Card** puts the player up big — a full-height portrait panel with the
-headshot, career WAR, stat line and accolades — and the lineup board steps
-aside for it. Hit it again (it reads **Hide Card**) and the board slides back.
+**Show Card** puts the player up big — a full-height portrait panel — and the
+lineup board steps aside for it. The card carries:
+
+- the headshot, his position and **career WAR**
+- **where he's from** — city and state, the whole point of the game
+- the years he played, how many seasons, and how he batted and threw
+- **every club he played for**, with the years at each (`BOS 1914-19 · NYY 1920-34 · BSN 1935`)
+- the **career numbers** — AVG/HR/RBI/H/R/SB/OPS/OBP/SLG for a hitter,
+  W-L/ERA/IP/SO/WHIP/SV/GS/CG/SHO for a pitcher. Two-way players like Ruth get
+  both lines.
+- his **best single season** (`14.1 WAR in 1923`)
+- Hall of Fame, MVPs, Cy Youngs, All-Star and Gold Glove counts, rings
+
+Long careers can't break the layout: a nine-team journeyman shows five clubs and
+`+4 more`, and every row is clamped so the panel is a fixed size no matter who
+comes up. Verified against 400 random players — none overflow. Hit it again (it reads **Hide Card**) and the board slides back.
 Locking a player in does the same thing automatically: the card eases off and
 the board returns with him on it.
 
@@ -104,6 +117,7 @@ and Guam.
 
 - **Career WAR** from Baseball Reference's public bulk files (`war_daily_bat` + `war_daily_pitch`),
   summed across every season, pitching and hitting.
+- **Teams played for**, with the years at each, from the same files' per-season team IDs.
 - **Birthplace, bio, career stats and awards** from the MLB Stats API.
 - **Position eligibility** from real career games-by-position: a spot counts if he played at
   least 5% of his games in the field there (minimum 20 games), so Ty Cobb is CF/RF and
@@ -128,8 +142,14 @@ downloads:
 cd build && python3 fetch_people.py && python3 build_pools.py && python3 fetch_stats.py && python3 fetch_fielding.py && python3 fetch_awards.py && python3 emit.py && mv players.js ..
 ```
 
-`fetch_people.py` needs `war_daily_bat.txt` and `war_daily_pitch.txt` from
-`https://www.baseball-reference.com/data/` in the same folder first.
+`build_pools.py` needs `war_daily_bat.txt` and `war_daily_pitch.txt` from
+`https://www.baseball-reference.com/data/` saved as `war_bat.txt` and
+`war_pitch.txt` in the same folder first.
+
+After replacing `players.js`, **bump the version in the two script tags**
+(`<script src="players.js?v=…">` in `control.html` and `display.html`). Without
+that the OBS machine happily keeps serving the copy it already cached and none
+of the new data shows up.
 
 ## Not going down mid-show
 
