@@ -1190,6 +1190,71 @@ function bestPlayerAt(st, slot){
   for(const p of (DATA.states[st]||[])) if(p.e.includes(slot) && (!b || p.w > b.w)) b = p;
   return b;
 }
+/* Nine different men. Picking each spot's best independently would happily put
+   Rogers Hornsby at 2B, 3B and SS at once — he can only stand in one place, so
+   the lineup has to be a real assignment.
+
+   Exact, by subset DP over the nine lineup spots. Only the top handful of
+   eligible players per spot can ever appear in an optimal answer (whoever holds
+   a spot is displaced by at most the eight men in the other spots), so the
+   candidate pool stays tiny and this is still exhaustive. */
+function bestDistinctPlayers(uniq){
+  const S = SLOTS.length;
+  const TOP = 12;                       /* 9 is provably enough; margin is free */
+  const cands = new Map();              /* id -> {p, st} — a man has one birth state */
+  SLOTS.forEach(slot => {
+    const pool = [];
+    uniq.forEach(st => (DATA.states[st] || []).forEach(p => {
+      if(p.e.includes(slot)) pool.push({ p, st });
+    }));
+    pool.sort((a, b) => b.p.w - a.p.w);
+    pool.slice(0, TOP).forEach(e => { if(!cands.has(e.p.id)) cands.set(e.p.id, e); });
+  });
+  const list = [...cands.values()];
+  if(!list.length) return {};
+
+  const size = 1 << S, NEG = -1e9;
+  let dp = new Float64Array(size).fill(NEG);
+  dp[0] = 0;
+  const took = [];                      /* took[k][mask] = spot candidate k filled, else -1 */
+  for(let k = 0; k < list.length; k++){
+    const next = Float64Array.from(dp);  /* carry forward: this man sits out */
+    const mine = new Int8Array(size).fill(-1);
+    const p = list[k].p;
+    for(let mask = 0; mask < size; mask++){
+      if(dp[mask] === NEG) continue;
+      for(let i = 0; i < S; i++){
+        if(mask & (1 << i)) continue;
+        if(!p.e.includes(SLOTS[i])) continue;
+        const nm = mask | (1 << i);
+        const val = dp[mask] + p.w;
+        if(val > next[nm]){ next[nm] = val; mine[nm] = i; }
+      }
+    }
+    dp = next;
+    took.push(mine);
+  }
+
+  /* fill as many spots as possible first, then maximise WAR among those */
+  const pc = new Uint8Array(size);
+  for(let m = 1; m < size; m++) pc[m] = pc[m >> 1] + (m & 1);
+  let bestMask = 0, bestPop = -1, bestVal = NEG;
+  for(let mask = 0; mask < size; mask++){
+    if(dp[mask] === NEG) continue;
+    if(pc[mask] > bestPop || (pc[mask] === bestPop && dp[mask] > bestVal)){
+      bestPop = pc[mask]; bestVal = dp[mask]; bestMask = mask;
+    }
+  }
+
+  const out = {};
+  let mask = bestMask;
+  for(let k = list.length - 1; k >= 0; k--){
+    const i = took[k][mask];
+    if(i >= 0){ out[SLOTS[i]] = { id: list[k].p.id, st: list[k].st }; mask ^= (1 << i); }
+  }
+  return out;
+}
+
 function bestTeam(states, oneEach){
   const uniq = [...new Set(states)];
   if(!uniq.length) return { team:null, note:'No states used yet.' };
@@ -1198,21 +1263,23 @@ function bestTeam(states, oneEach){
   const grid = SLOTS.map(slot => uniq.map(st => bestPlayerAt(st, slot)));
 
   if(!oneEach || uniq.length < SLOTS.length){
-    const out = {};
-    SLOTS.forEach((slot, i) => {
-      let b = null, bj = -1;
-      grid[i].forEach((p, j) => { if(p && (!b || p.w > b.w)){ b = p; bj = j; } });
-      if(b) out[slot] = { id:b.id, st:uniq[bj] };
-    });
+    const out = bestDistinctPlayers(uniq);
     const note = oneEach && uniq.length < SLOTS.length
       ? `Only ${uniq.length} different state${uniq.length>1?'s':''} used — can't give every spot its own state, so states repeat here.`
       : '';
     return { team:out, note };
   }
 
-  /* assignment problem: one distinct state per lineup spot */
+  /* One distinct state per spot. Nobody can repeat here either: each spot draws
+     from a different state and a man has exactly one birthplace. */
   const n = uniq.length, S = SLOTS.length, NEG = -1e9;
   const size = 1 << n;
+  /* A fielded spot beats an empty one even when the empty one scores better.
+     Some state has to take the catcher's spot, and if the one that lands there
+     has no catcher the spot goes blank — which can genuinely total more WAR
+     than spending a loaded state on it, but "best possible team" with nobody
+     behind the plate reads as broken. So count men fielded first, then WAR. */
+  const FILLED = 1e5;                       /* dwarfs any WAR spread */
   const dp = new Float64Array(size).fill(NEG);
   const from = new Int32Array(size).fill(-1);
   dp[0] = 0;
@@ -1226,7 +1293,7 @@ function bestTeam(states, oneEach){
       if(mask & (1<<j)) continue;
       const p = grid[i][j];
       const nm = mask | (1<<j);
-      const val = dp[mask] + (p ? p.w : 0);
+      const val = dp[mask] + (p ? p.w + FILLED : 0);
       if(val > dp[nm]){ dp[nm] = val; from[nm] = j; }
     }
   }

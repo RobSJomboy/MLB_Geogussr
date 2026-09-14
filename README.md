@@ -115,10 +115,19 @@ audience has been watching all game — rather than covering the screen.
 
 Hide it and the lineup board slides straight back.
 
-By default the best team obeys the same rule they played by: **one player per state**
-(solved exactly, not greedily — it will happily move Honus Wagner to first base if that
-frees Pennsylvania up for someone better). Untick the box to let one loaded state fill
-several spots.
+The best team is always **nine different men** — nobody covers two spots at once —
+and it always fields a full nine when the states allow it. Both are solved exactly
+rather than greedily: picking each spot's best in isolation would put Rogers
+Hornsby at 2B, 3B and SS simultaneously, and maximising WAR alone will happily
+leave the catcher's spot blank because that scores better than spending a loaded
+state on it. So the solver counts men fielded first, then total WAR.
+
+By default it also obeys the same rule they played by: **one player per state**
+(it will move Honus Wagner to first base if that frees Pennsylvania up for
+someone better). Untick the box to let one loaded state fill several spots —
+still nine different players, just drawn from fewer states. That relaxed mode
+also kicks in automatically when they visited fewer than nine distinct states,
+which happens any time they land somewhere twice.
 
 ## The data
 
