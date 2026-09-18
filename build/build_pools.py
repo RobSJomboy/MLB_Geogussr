@@ -14,6 +14,10 @@ ipouts = defaultdict(int)
 years = defaultdict(set)
 brid = {}                          # mlb_ID -> baseball-reference player id
 team_years = defaultdict(lambda: defaultdict(set))   # mlb_ID -> team -> {years}
+# era split: the live ball era starts in 1920
+LIVE_BALL_FROM = 1920
+era_seasons = defaultdict(lambda: [set(), set()])    # mlb_ID -> [dead years, live years]
+era_time = defaultdict(lambda: [0, 0])               # mlb_ID -> [dead, live] PA + IPouts
 peak = defaultdict(lambda: (0.0, ''))   # best single season
 
 def num(v):
@@ -24,12 +28,70 @@ def num(v):
     except ValueError:
         return 0.0
 
+def resolve_aliases():
+    """Baseball Reference leaves mlb_ID NULL for some players — every Negro
+    Leagues great among them — and this whole join runs on mlb_ID, so they were
+    being dropped silently: Josh Gibson, Bullet Rogan, Turkey Stearnes, Oscar
+    Charleston, Cool Papa Bell. Match those rows to StatsAPI by name, accepting
+    only an unambiguous single name match whose career overlaps, and carry them
+    in under the right id.
+    """
+    by_name = defaultdict(list)
+    for pid, p in people.items():
+        by_name[p['name']].append(pid)
+
+    orphan = {}                      # bbref id -> [name, {years}]
+    for path in ('war_bat.txt', 'war_pitch.txt'):
+        with open(path, newline='', encoding='utf-8', errors='replace') as f:
+            for row in csv.DictReader(f):
+                mid = (row.get('mlb_ID') or '').strip()
+                if mid and mid != 'NULL':
+                    continue
+                bb = (row.get('player_ID') or '').strip()
+                if not bb:
+                    continue
+                e = orphan.setdefault(bb, [row.get('name_common', ''), set()])
+                yr = (row.get('year_ID') or '').strip()
+                if yr.isdigit():
+                    e[1].add(int(yr))
+
+    alias, skipped = {}, 0
+    for bb, (name, yrs) in orphan.items():
+        cands = by_name.get(name, [])
+        if len(cands) != 1 or not yrs:
+            skipped += 1
+            continue
+        pid = cands[0]
+        p = people[pid]
+        debut = int(p['debut']) if (p.get('debut') or '').isdigit() else None
+        last = int(p['last']) if (p.get('last') or '').isdigit() else None
+        # the two records have to describe the same career, not just the same name
+        if debut and last and not (min(yrs) <= last + 2 and max(yrs) >= debut - 2):
+            skipped += 1
+            continue
+        alias[bb] = pid
+    print(f'recovered {len(alias)} players with a NULL mlb_ID '
+          f'({skipped} left unmatched)', file=sys.stderr)
+    return alias
+
+
+ALIAS = {}
+
+
+def mlb_id(row):
+    """mlb_ID, falling back to a name-resolved alias for the NULL rows."""
+    mid = (row.get('mlb_ID') or '').strip()
+    if mid and mid != 'NULL':
+        return mid
+    return ALIAS.get((row.get('player_ID') or '').strip(), '')
+
+
 def load(path, is_pitch):
     n = 0
     with open(path, newline='', encoding='utf-8', errors='replace') as f:
         for row in csv.DictReader(f):
-            mid = (row.get('mlb_ID') or '').strip()
-            if not mid or mid == 'NULL':
+            mid = mlb_id(row)
+            if not mid:
                 continue
             bb = (row.get('player_ID') or '').strip()
             if bb and bb != 'NULL':
@@ -47,9 +109,14 @@ def load(path, is_pitch):
             tm = (row.get('team_ID') or '').strip()
             if tm and tm != 'NULL' and yr.isdigit():
                 team_years[mid][tm].add(int(yr))
+            if yr.isdigit():
+                era = 1 if int(yr) >= LIVE_BALL_FROM else 0
+                era_seasons[mid][era].add(int(yr))
+                era_time[mid][era] += int(num(row.get('IPouts'))) if is_pitch else int(num(row.get('PA')))
             n += 1
     print(f'{path}: {n} season-stints', file=sys.stderr)
 
+ALIAS = resolve_aliases()
 load('war_bat.txt', False)
 load('war_pitch.txt', True)
 
@@ -58,9 +125,9 @@ season_war = defaultdict(lambda: defaultdict(float))
 for path, in (('war_bat.txt',), ('war_pitch.txt',)):
     with open(path, newline='', encoding='utf-8', errors='replace') as f:
         for row in csv.DictReader(f):
-            mid = (row.get('mlb_ID') or '').strip()
+            mid = mlb_id(row)
             yr = (row.get('year_ID') or '').strip()
-            if mid and mid != 'NULL' and yr:
+            if mid and yr:
                 season_war[mid][yr] += num(row.get('WAR'))
 for mid, ys in season_war.items():
     y, w = max(ys.items(), key=lambda kv: kv[1])
@@ -72,6 +139,26 @@ def span(ys):
         return str(a)
     # short end year unless the century turned over: 1920-34, but 1998-2003
     return f'{a}-{b % 100:02d}' if a // 100 == b // 100 else f'{a}-{b}'
+
+def is_live_ball(mid):
+    """Most of his career in the live ball era (1920 on).
+
+    Measured in playing time (plate appearances for hitters, outs recorded for
+    pitchers) rather than season count. Counting seasons calls Grover Alexander
+    a live ball pitcher on 11 seasons to 9, when he threw more innings and
+    earned more of his WAR before 1920 — he is a dead ball great. Season count
+    only breaks an exact tie.
+
+    Ruth (1914-35) and Hornsby (1915-37) are in; Cobb, Speaker, Walter Johnson,
+    Eddie Collins and every pre-1920 star is out. Negro Leagues play is
+    1920-1948 in MLB's records, so those men are live ball throughout.
+    """
+    dt, lt = era_time.get(mid, [0, 0])
+    if lt != dt:
+        return lt > dt
+    dead, live = era_seasons.get(mid, [set(), set()])
+    return len(live) > len(dead)
+
 
 def team_list(mid):
     tms = team_years.get(mid)
@@ -101,6 +188,7 @@ FULL2ABBR = {v.lower(): k for k, v in STATES.items()}
 
 by_state = defaultdict(list)
 skipped_state = defaultdict(int)
+dead_ball = 0
 for pid, p in people.items():
     if p['ctry'] not in ('USA', 'United States', 'Puerto Rico', 'U.S. Virgin Islands', 'Guam'):
         continue
@@ -115,6 +203,9 @@ for pid, p in people.items():
         st = FULL2ABBR.get(st.lower(), '')
     if not st:
         skipped_state[p['st']] += 1
+        continue
+    if not is_live_ball(pid):
+        dead_ball += 1
         continue
     w = war.get(pid)
     rec = dict(p)
@@ -132,6 +223,7 @@ for pid, p in people.items():
     rec['tm'] = team_list(pid)
     by_state[st].append(rec)
 
+print(f'\ndropped as pre-live-ball: {dead_ball}', file=sys.stderr)
 print('\nunmatched birth states (top 15):', file=sys.stderr)
 for k, v in sorted(skipped_state.items(), key=lambda kv: -kv[1])[:15]:
     print(f'   {k!r}: {v}', file=sys.stderr)

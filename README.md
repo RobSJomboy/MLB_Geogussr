@@ -4,7 +4,8 @@ Remote-control overlay pack for the bit where Trev and Jake play Geoguessr and h
 build a lineup out of it.
 
 **The game:** three minutes on the map. Guess the state you got dropped in and you get to
-*pick* any player born there. Miss it and the wheel picks for you — you're stuck with him.
+*pick* any player born there — **live ball era only**, so everyone in the pool is someone
+the audience has a feel for. Miss it and the wheel picks for you — you're stuck with him.
 Fill out a traditional NL lineup (C, 1B, 2B, 3B, SS, LF, CF, RF, P), add up the career WAR,
 and see how the team fares. Then the reveal: the **best team that could have been built**
 from the exact states they visited, and how much WAR they left on the table.
@@ -18,7 +19,7 @@ Two pages, same as the Trade Deadline setup — you drive `control.html` from an
 | [`control.html`](control.html) | Host panel. Everything on one screen, no scrolling: timer and state grid on the left, player search and scouting report in the middle, lineup, final and live preview on the right. |
 | [`display.html`](display.html) | The overlay. Transparent 1920×1080, no controls, reads the topic. The lineup board, the player card, the random-draw spin and the finale all share the right-hand side and take turns — one panel at a time. |
 | [`index.html`](index.html) | Landing page with links to both. |
-| `players.js` | The data — 6,278 players. |
+| `players.js` | The data — 5,619 players. |
 
 ## Setup
 
@@ -131,8 +132,20 @@ which happens any time they land somewhere twice.
 
 ## The data
 
-`players.js` — **6,278 players** across 50 states, DC, Puerto Rico, the U.S. Virgin Islands
-and Guam.
+`players.js` — **5,619 players** across 50 states, DC, Puerto Rico, the U.S. Virgin Islands
+and Guam — the **live ball era** (1920 on) only.
+
+A man counts as live ball if **most of his career came after 1920**, measured in playing
+time (plate appearances for hitters, outs recorded for pitchers). So Babe Ruth is in
+despite debuting in 1914, and Rogers Hornsby, Harry Heilmann, Sam Rice, Red Faber and
+Stan Coveleski are too. Ty Cobb, Tris Speaker, Honus Wagner, Walter Johnson, Cy Young,
+Nap Lajoie and Eddie Collins are out. So is Grover Alexander — he pitched eleven seasons
+after 1920 to nine before, but threw more innings and earned more of his WAR in the dead
+ball era, which is why the measure is playing time rather than a count of seasons.
+
+That drops 4,135 players and reshapes the deep old states: Pennsylvania now leads with
+Musial, Griffey and Mussina instead of Wagner, and Georgia with Frank Thomas, Johnny Mize
+and Jackie Robinson instead of Cobb.
 
 - **Career WAR** from Baseball Reference's public bulk files (`war_daily_bat` + `war_daily_pitch`),
   summed across every season, pitching and hitting.
@@ -142,7 +155,12 @@ and Guam.
   least 5% of his games in the field there (minimum 20 games), so Ty Cobb is CF/RF and
   Randy Johnson's single inning in left doesn't make him an outfielder.
 - Includes **Negro Leagues players**, who MLB recognized as major leaguers in 2020 and who
-  Baseball Reference has WAR for.
+  Baseball Reference has WAR for. Their recognized play runs 1920–1948, so they are live
+  ball throughout. Note that Baseball Reference leaves `mlb_ID` **NULL** on many of these
+  records, and since the whole join runs on `mlb_ID` they were being dropped silently —
+  Josh Gibson, Bullet Rogan, Turkey Stearnes, Oscar Charleston and Cool Papa Bell among
+  them. `build_pools.py` now recovers them by matching name plus career span back to
+  StatsAPI (50 players, only on an unambiguous single match).
 
 Per state we carry the **top 120 by career WAR, plus everyone at 5+ WAR**. So California
 ships 604 players and Wyoming ships 17 — the random draw pulls from that pool, not from
